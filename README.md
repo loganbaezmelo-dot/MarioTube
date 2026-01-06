@@ -1,0 +1,2 @@
+MarioTube (fanmade) is the ultimate video sharing platform for the Mushroom Kingdom! Built with React and Firebase, it transforms the standard video hosting experience into a retro, 8-bit adventure.
+​Travel through World 1-1 to discover new levels (videos), or warp to Star World to see content from your favorite players. Uploads are handled via Green Warp Pipes, and you can "collect" videos to leave a Like. Featuring a custom MKTV-style player, MarioTube bridges the gap between modern streaming and nostalgic gaming.
