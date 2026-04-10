@@ -46,7 +46,6 @@ import {
   Info
 } from 'lucide-react';
 
-// --- NEW CONFIGURATION (mariotube-7c40d) ---
 const firebaseConfig = {
   apiKey: "AIzaSyChsLzSP7gj6o43SQ2UhwPlJtOuF0YJlxU",
   authDomain: "mariotube-7c40d.firebaseapp.com",
@@ -57,7 +56,6 @@ const firebaseConfig = {
   measurementId: "G-1791R3EMS8"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -66,7 +64,6 @@ const googleProvider = new GoogleAuthProvider();
 const VIDEO_COLLECTION = 'mario-tube-videos';
 const USERS_COLLECTION = 'mario-tube-users';
 
-// --- HELPER FUNCTIONS ---
 const getYoutubeId = (url) => {
   if (!url) return null;
   try {
@@ -83,8 +80,6 @@ const formatTime = (timestamp) => {
   const date = timestamp.toDate();
   return date.toLocaleDateString();
 };
-
-// --- COMPONENTS ---
 
 const PixelButton = ({ children, onClick, color = 'red', className = '', type = 'button', disabled = false }) => {
   const colors = {
@@ -115,7 +110,6 @@ const PixelButton = ({ children, onClick, color = 'red', className = '', type = 
   );
 };
 
-// --- SEARCH RESULTS SCREEN ---
 const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack }) => {
   const matchedVideos = videos.filter(v => 
     v.title.toLowerCase().includes(query.toLowerCase())
@@ -185,7 +179,6 @@ const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack
   );
 };
 
-// --- WATCH SCREEN ---
 const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscribedTo = [] }) => {
   const [uploaderData, setUploaderData] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -410,7 +403,6 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
   );
 };
 
-// --- WARP ZONE (CHANNEL PAGE) ---
 const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribedTo = [] }) => {
   const [channelData, setChannelData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -574,8 +566,6 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   );
 };
 
-// --- HEADER COMPONENT ---
-
 const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => {
   const [query, setQuery] = useState('');
   const userInitial = user?.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
@@ -644,7 +634,6 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
   );
 };
 
-// --- VIDEO CARD COMPONENT ---
 const VideoCard = ({ video, user, onUserClick, onWatch }) => {
   const [isHovered, setIsHovered] = useState(false);
   
@@ -778,7 +767,6 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
   );
 };
 
-// --- UPLOAD MODAL (YOUTUBE ONLY) ---
 const UploadModal = ({ isOpen, onClose, user }) => {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
@@ -865,7 +853,6 @@ const UploadModal = ({ isOpen, onClose, user }) => {
   );
 };
 
-// --- LANDING PAGE (REPLACES AUTH SCREEN) ---
 const LandingPage = ({ onGoogleLogin }) => {
   const [loading, setLoading] = useState(false);
 
@@ -877,12 +864,10 @@ const LandingPage = ({ onGoogleLogin }) => {
 
   return (
     <div className="min-h-screen bg-[#5c94fc] flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
       <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')]"></div>
 
       <div className="max-w-2xl w-full z-10 flex flex-col items-center">
         
-        {/* Title */}
         <div className="animate-bounce mb-8 text-center">
           <h1 className="text-6xl md:text-8xl font-black text-[#e52521] pixel-font drop-shadow-[4px_4px_0_#fff]">
             MARIO
@@ -890,7 +875,6 @@ const LandingPage = ({ onGoogleLogin }) => {
           </h1>
         </div>
 
-        {/* Info Box */}
         <div className="bg-white border-4 border-black p-1 rounded-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] mb-8">
           <div className="bg-black p-6 md:p-8 border-2 border-white rounded flex flex-col items-center text-center">
             
@@ -932,7 +916,6 @@ const LandingPage = ({ onGoogleLogin }) => {
           </div>
         </div>
         
-        {/* Disclaimer */}
         <div className="text-center space-y-2">
           <p className="text-white/80 font-bold text-xs pixel-font uppercase">
             FANMADE PROJECT
@@ -952,18 +935,15 @@ export default function App() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Navigation State
-  const [currentView, setCurrentView] = useState('feed'); // 'feed' | 'channel' | 'watch' | 'search'
+  const [currentView, setCurrentView] = useState('feed'); 
   const [channelTarget, setChannelTarget] = useState(null);
   const [watchTarget, setWatchTarget] = useState(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter State ('all' | 'subs')
   const [feedFilter, setFeedFilter] = useState('all');
   const [mySubscriptions, setMySubscriptions] = useState([]);
 
-  // Auth Listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -972,7 +952,6 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Subscription Listener
   useEffect(() => {
     if (!user) {
       setMySubscriptions([]);
@@ -988,7 +967,6 @@ export default function App() {
     return () => unsubscribe();
   }, [user]);
 
-  // Video Feed Listener
   useEffect(() => {
     const q = collection(db, VIDEO_COLLECTION);
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -1008,7 +986,6 @@ export default function App() {
     } catch (e) { console.error("Login failed", e); }
   };
 
-  // NAVIGATION HANDLERS
   const navigateToChannel = (targetUser) => {
     setChannelTarget(targetUser);
     setCurrentView('channel');
@@ -1027,7 +1004,6 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
-  // RENDER LOGIC
   if (loading) return <div className="min-h-screen bg-black text-white p-10 pixel-font">LOADING...</div>;
   if (!user) return <LandingPage onGoogleLogin={handleGoogleLogin} />;
 
@@ -1079,7 +1055,6 @@ export default function App() {
     );
   }
 
-  // Filter Logic for FEED
   const filteredVideos = feedFilter === 'subs' 
     ? videos.filter(v => mySubscriptions.includes(v.userId))
     : videos;
