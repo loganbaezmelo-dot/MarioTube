@@ -1,3 +1,4 @@
+```react
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -22,19 +23,12 @@ import {
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL
-} from 'firebase/storage';
 import { 
   Play, 
   Pause, 
   Upload, 
   LogOut, 
   X, 
-  User as UserIcon, 
   Gamepad2, 
   ArrowLeft, 
   Settings, 
@@ -48,7 +42,8 @@ import {
   Globe,
   Share2,
   Copy,
-  Search
+  Search,
+  Info
 } from 'lucide-react';
 
 // --- NEW CONFIGURATION (mariotube-7c40d) ---
@@ -66,7 +61,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 const VIDEO_COLLECTION = 'mario-tube-videos';
@@ -532,7 +526,6 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                     {index + 1}
                   </div>
                   
-                  {/* PIPE/THUMBNAIL: Now clickable to watch */}
                   <div 
                     className="relative w-48 md:w-64 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
                     onClick={() => onWatch(video)}
@@ -607,7 +600,6 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
           </h1>
         </div>
 
-        {/* SEARCH BAR */}
         <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md relative">
            <input 
              type="text" 
@@ -656,7 +648,6 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
 const VideoCard = ({ video, user, onUserClick, onWatch }) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  // Optimistic Like State
   const likedBy = video.likedBy || [];
   const initialHasLiked = user && likedBy.includes(user.uid);
   const [isLikedOptimistic, setIsLikedOptimistic] = useState(initialHasLiked);
@@ -682,7 +673,6 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
     e.stopPropagation();
     if (!user) return;
 
-    // Optimistic Update
     const newIsLiked = !isLikedOptimistic;
     setIsLikedOptimistic(newIsLiked);
     setLikeCountOptimistic(prev => newIsLiked ? prev + 1 : prev - 1);
@@ -695,7 +685,6 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
         await updateDoc(docRef, { likedBy: arrayUnion(user.uid) });
       }
     } catch (error) { 
-      // Revert if failed
       setIsLikedOptimistic(!newIsLiked);
       setLikeCountOptimistic(prev => !newIsLiked ? prev + 1 : prev - 1);
       
@@ -789,81 +778,43 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
   );
 };
 
-// --- UPLOAD MODAL ---
+// --- UPLOAD MODAL (YOUTUBE ONLY) ---
 const UploadModal = ({ isOpen, onClose, user }) => {
-  const [activeTab, setActiveTab] = useState('link'); // 'link' | 'file'
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
 
   if (!isOpen) return null;
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files[0];
-    if (selected) {
-      if (selected.size > 20971520) {
-        alert("File too big! Limit is 20MB to save space.");
-        return;
-      }
-      setFile(selected);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) return;
-    if (activeTab === 'link' && !url) return;
-    if (activeTab === 'file' && !file) return;
+    if (!title || !url) return;
+
+    const ytid = getYoutubeId(url);
+    if (!ytid) {
+      alert("Please enter a valid YouTube link.");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      if (activeTab === 'file') {
-        const storageRef = ref(storage, `videos/${user.uid}/${Date.now()}_${file.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setProgress(progress);
-          },
-          (error) => {
-            console.error("Upload failed:", error);
-            setLoading(false);
-            alert("Upload failed! Check Storage rules.");
-          },
-          async () => {
-            const finalUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            await createVideoDoc(finalUrl);
-          }
-        );
-      } else {
-         await createVideoDoc(url);
-      }
+      await addDoc(collection(db, VIDEO_COLLECTION), {
+        title,
+        url: url,
+        likedBy: [], 
+        userId: user.uid,
+        username: user.displayName || 'Player 1',
+        createdAt: serverTimestamp()
+      });
+      setTitle('');
+      setUrl('');
+      setLoading(false);
+      onClose();
     } catch (error) {
       console.error("Error: ", error);
       setLoading(false);
     }
-  };
-
-  const createVideoDoc = async (videoUrl) => {
-    await addDoc(collection(db, VIDEO_COLLECTION), {
-      title,
-      url: videoUrl,
-      likedBy: [], 
-      userId: user.uid,
-      username: user.displayName || 'Player 1',
-      createdAt: serverTimestamp()
-    });
-    setTitle('');
-    setUrl('');
-    setFile(null);
-    setProgress(0);
-    setLoading(false);
-    onClose();
   };
 
   return (
@@ -889,69 +840,19 @@ const UploadModal = ({ isOpen, onClose, user }) => {
             />
           </div>
 
-          <div className="flex border-b-4 border-black mb-4">
-             <button
-               type="button" 
-               onClick={() => setActiveTab('link')}
-               className={`flex-1 py-2 font-bold pixel-font text-xs flex items-center justify-center gap-2 ${activeTab === 'link' ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}`}
-             >
-               <LinkIcon size={14} /> FREE (LINK)
-             </button>
-             <button 
-               type="button"
-               onClick={() => setActiveTab('file')}
-               className={`flex-1 py-2 font-bold pixel-font text-xs flex items-center justify-center gap-2 ${activeTab === 'file' ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}`}
-             >
-               <Film size={14} /> UPLOAD (20MB)
-             </button>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">YouTube URL</label>
+            <input 
+              type="url" 
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://youtube.com/..."
+              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
+            />
+            <p className="text-[10px] mt-2 text-green-800 font-bold flex items-center gap-1">
+              <Info size={10} /> MarioTube exclusively supports YouTube links.
+            </p>
           </div>
-
-          {activeTab === 'link' ? (
-             <div>
-               <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">YouTube URL</label>
-               <input 
-                 type="url" 
-                 value={url}
-                 onChange={(e) => setUrl(e.target.value)}
-                 placeholder="https://youtube.com/..."
-                 className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
-               />
-               <p className="text-[10px] mt-2 text-green-800 font-bold flex items-center gap-1">
-                 <LinkIcon size={10} /> Best for long videos (0% Storage Used)
-               </p>
-             </div>
-          ) : (
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">Select Video File</label>
-              <div className="relative border-4 border-dashed border-green-700 bg-green-50 p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-green-100 transition-colors">
-                  <input 
-                    type="file" 
-                    accept="video/*"
-                    onChange={handleFileChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  <Film size={32} className="text-green-700 mb-2" />
-                  <span className="font-bold text-green-800 text-sm pixel-font">
-                    {file ? file.name : "CLICK TO CHOOSE"}
-                  </span>
-              </div>
-              <p className="text-[10px] mt-2 text-red-600 font-bold flex items-center gap-1">
-                 <AlertTriangle size={10} /> Max 20MB (Consumes Free Quota)
-               </p>
-            </div>
-          )}
-
-          {loading && activeTab === 'file' && (
-             <div className="w-full border-4 border-black bg-gray-300 h-8 relative">
-               <div 
-                 className="h-full bg-yellow-400 transition-all duration-200"
-                 style={{ width: `${progress}%` }}
-               ></div>
-               <span className="absolute inset-0 flex items-center justify-center text-xs font-bold pixel-font">
-                 UPLOADING {Math.round(progress)}%
-               </span>
-             </div>
-          )}
 
           <div className="flex justify-end pt-4">
             <PixelButton color="green" type="submit" className="w-full" disabled={loading}>
@@ -964,8 +865,8 @@ const UploadModal = ({ isOpen, onClose, user }) => {
   );
 };
 
-// --- AUTH SCREEN ---
-const AuthScreen = ({ onGoogleLogin }) => {
+// --- LANDING PAGE (REPLACES AUTH SCREEN) ---
+const LandingPage = ({ onGoogleLogin }) => {
   const [loading, setLoading] = useState(false);
 
   const handleStart = async () => {
@@ -975,48 +876,72 @@ const AuthScreen = ({ onGoogleLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-20 pointer-events-none" 
-           style={{
-             backgroundImage: 'linear-gradient(#333 1px, transparent 1px), linear-gradient(90deg, #333 1px, transparent 1px)',
-             backgroundSize: '40px 40px'
-           }}>
-      </div>
+    <div className="min-h-screen bg-[#5c94fc] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')]"></div>
 
-      <div className="max-w-md w-full text-center space-y-8 z-10">
-        <div className="animate-bounce">
+      <div className="max-w-2xl w-full z-10 flex flex-col items-center">
+        
+        {/* Title */}
+        <div className="animate-bounce mb-8 text-center">
           <h1 className="text-6xl md:text-8xl font-black text-[#e52521] pixel-font drop-shadow-[4px_4px_0_#fff]">
             MARIO
             <span className="text-white block text-4xl md:text-6xl mt-2 drop-shadow-[4px_4px_0_#000] stroke-black">TUBE</span>
           </h1>
         </div>
 
-        <div className="bg-white border-4 border-white p-1 rounded-lg inline-block shadow-2xl">
-          <div className="bg-black p-8 border-2 border-white rounded space-y-6">
-            <p className="text-white pixel-font text-sm uppercase tracking-widest text-yellow-400 mb-6">
-              1 Player Game
-            </p>
+        {/* Info Box */}
+        <div className="bg-white border-4 border-black p-1 rounded-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] mb-8">
+          <div className="bg-black p-6 md:p-8 border-2 border-white rounded flex flex-col items-center text-center">
             
-            <div className="space-y-4">
-              <p className="text-gray-400 pixel-font text-[10px] mb-4">PLEASE CONNECT CONTROLLER</p>
-              
+            <h2 className="text-yellow-400 pixel-font text-lg md:text-xl mb-4">WELCOME TO STAR WORLD</h2>
+            
+            <p className="text-white font-mono text-sm md:text-base leading-relaxed mb-6 max-w-lg">
+              MarioTube is a fan-made hub for curating and sharing your favorite Mushroom Kingdom content. 
+            </p>
+
+            <div className="text-left bg-[#333] p-4 border-2 border-gray-600 rounded w-full max-w-md mb-8 space-y-3 font-mono text-sm text-gray-300">
+              <div className="flex items-start gap-2">
+                <LinkIcon size={16} className="text-blue-400 shrink-0 mt-1" />
+                <p>Submit levels using <span className="text-white font-bold">YouTube links</span>.</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Star size={16} className="text-yellow-400 shrink-0 mt-1" />
+                <p>Subscribe to players to build your Star World feed.</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Globe size={16} className="text-green-400 shrink-0 mt-1" />
+                <p>Discover new channels in World 1-1.</p>
+              </div>
+            </div>
+            
+            <div className="w-full max-w-xs">
+              <p className="text-gray-400 pixel-font text-[10px] mb-3">PLAYER 1: PRESS START</p>
               <button 
                 onClick={handleStart}
                 disabled={loading}
-                className="w-full py-4 bg-white hover:bg-gray-100 text-black border-4 border-gray-400 shadow-[4px_4px_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-3"
+                className="w-full py-4 bg-white hover:bg-gray-200 text-black border-4 border-gray-400 shadow-[4px_4px_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-3"
               >
                 <img src="https://www.google.com/favicon.ico" alt="G" className="w-6 h-6" />
                 <span className="pixel-font font-bold tracking-tighter">
-                   {loading ? 'CONNECTING...' : 'LOGIN WITH GOOGLE'}
+                   {loading ? 'WARPING...' : 'LOGIN TO PLAY'}
                 </span>
               </button>
             </div>
+
           </div>
         </div>
         
-        <div className="text-gray-500 text-xs mt-8 pixel-font">
-          © 2026 MUSHROOM KINGDOM INC.
+        {/* Disclaimer */}
+        <div className="text-center space-y-2">
+          <p className="text-white/80 font-bold text-xs pixel-font uppercase">
+            FANMADE PROJECT
+          </p>
+          <p className="text-black/60 font-mono text-[10px] max-w-md mx-auto leading-tight px-4">
+            MarioTube is a portfolio project and is not affiliated with, endorsed by, or connected to Nintendo. All characters and assets belong to their respective owners.
+          </p>
         </div>
+
       </div>
     </div>
   );
@@ -1047,7 +972,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Subscription Listener (Real-time updates of who I follow)
+  // Subscription Listener
   useEffect(() => {
     if (!user) {
       setMySubscriptions([]);
@@ -1104,7 +1029,7 @@ export default function App() {
 
   // RENDER LOGIC
   if (loading) return <div className="min-h-screen bg-black text-white p-10 pixel-font">LOADING...</div>;
-  if (!user) return <AuthScreen onGoogleLogin={handleGoogleLogin} />;
+  if (!user) return <LandingPage onGoogleLogin={handleGoogleLogin} />;
 
   if (currentView === 'search') {
     return (
@@ -1187,7 +1112,6 @@ export default function App() {
             </p>
           </div>
 
-          {/* Filter Tabs */}
           <div className="flex gap-2">
              <button 
                onClick={() => setFeedFilter('all')}
@@ -1241,3 +1165,4 @@ export default function App() {
 }
 
 
+```
