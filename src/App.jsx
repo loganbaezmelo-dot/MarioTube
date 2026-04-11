@@ -282,6 +282,10 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
     </button>
   );
 
+  const controlsClassName = "absolute bottom-6 right-6 z-30 flex gap-4 transition-opacity duration-300 " + (isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100");
+  const subBtnClassName = "ml-4 px-4 py-2 rounded-full font-bold text-xs pixel-font transition-all " + (isSubscribed ? "bg-gray-600 text-white" : "bg-red-600 text-white hover:bg-red-500");
+  const likeBtnClassName = "flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all active:scale-95 " + (isLikedOptimistic ? "bg-white text-red-600 border-red-600" : "bg-[#444] border-gray-600 hover:bg-[#555]");
+
   return (
     <div className="min-h-screen bg-[#202020] text-white font-mono flex flex-col">
       <div className="bg-[#5c94fc] p-4 border-b-4 border-black flex justify-between items-center sticky top-0 z-50 shadow-xl">
@@ -304,14 +308,13 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
                   ref={videoRef}
                   src={video.url}
                   className="w-full h-full object-contain"
-                  controls={false}
                   onClick={togglePlay}
                   onTimeUpdate={handleTimeUpdate}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   autoPlay
                 />
-                <div className={`absolute bottom-6 right-6 z-30 flex gap-4 transition-opacity duration-300 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+                <div className={controlsClassName}>
                    <MKTVButton onClick={() => { if(videoRef.current) videoRef.current.currentTime = 0; }} icon={RotateCcw} />
                    <MKTVButton onClick={togglePlay} icon={isPlaying ? Pause : Play} />
                    <MKTVButton onClick={() => { if(videoRef.current) videoRef.current.requestFullscreen(); }} icon={Maximize} />
@@ -321,13 +324,13 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
                     const pos = (e.clientX - rect.left) / rect.width;
                     if(videoRef.current) videoRef.current.currentTime = pos * videoRef.current.duration;
                 }}>
-                   <div className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: `${progress}%` }} />
+                   <div className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: progress + "%" }} />
                 </div>
              </>
            ) : (
              canRenderYoutube ? (
                <iframe
-                  src={`https://www.youtube.com/embed/${ytid}?autoplay=1&modestbranding=1&rel=0`}
+                  src={"https://www.youtube.com/embed/" + ytid + "?autoplay=1&modestbranding=1&rel=0"}
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -371,7 +374,7 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
               {!isOwnChannel && currentUser && (
                 <button 
                   onClick={handleToggleSubscribe}
-                  className={`ml-4 px-4 py-2 rounded-full font-bold text-xs pixel-font transition-all ${isSubscribed ? 'bg-gray-600 text-white' : 'bg-red-600 text-white hover:bg-red-500'}`}
+                  className={subBtnClassName}
                 >
                   {isSubscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
                 </button>
@@ -383,7 +386,7 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
              <button 
                onClick={handleLike}
                disabled={!currentUser}
-               className={`flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all active:scale-95 ${isLikedOptimistic ? 'bg-white text-red-600 border-red-600' : 'bg-[#444] border-gray-600 hover:bg-[#555]'}`}
+               className={likeBtnClassName}
              >
                <Heart size={20} fill={isLikedOptimistic ? "currentColor" : "none"} />
                <span className="font-bold pixel-font">{likeCountOptimistic} LIKES</span>
@@ -456,6 +459,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   };
 
   const userVideos = videos.filter(v => v.userId === targetUser.uid);
+  const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
     <div className="min-h-screen bg-black text-white p-4 relative overflow-hidden font-mono">
@@ -478,7 +482,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               <div className="absolute -top-6 -right-6 transform rotate-12">
                 <button 
                   onClick={toggleSubscribe}
-                  className={`p-3 border-4 border-black shadow-lg transition-all active:scale-95 ${isSubscribed ? 'bg-gray-400' : 'bg-yellow-400 hover:bg-yellow-300 animate-bounce'}`}
+                  className={warpSubBtnClass}
                 >
                   <Star size={32} fill={isSubscribed ? "gray" : "white"} className="text-black" />
                 </button>
@@ -523,7 +527,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                     onClick={() => onWatch(video)}
                   >
                     <img 
-                      src={getYoutubeId(video.url) ? `https://img.youtube.com/vi/${getYoutubeId(video.url)}/hqdefault.jpg` : 'https://placehold.co/600x400/000000/FFFFFF?text=Level'}
+                      src={getYoutubeId(video.url) ? ("https://img.youtube.com/vi/" + getYoutubeId(video.url) + "/hqdefault.jpg") : "https://placehold.co/600x400/000000/FFFFFF?text=Level"}
                       onError={(e) => e.target.src = 'https://placehold.co/600x400/000000/FFFFFF?text=Video'} 
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                     />
@@ -655,7 +659,7 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
 
   let thumbnail = null;
   if (canRenderYoutube) {
-    thumbnail = `https://img.youtube.com/vi/${ytid}/hqdefault.jpg`;
+    thumbnail = "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg";
   }
 
   const handleLike = async (e) => {
@@ -685,6 +689,17 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
       }
     }
   };
+
+  const btnClass = [
+    "flex items-center space-x-2 px-3 py-1 rounded-full border-2 transition-all duration-200 active:scale-95",
+    isLikedOptimistic
+      ? "bg-red-500 border-black text-white" 
+      : user 
+        ? "bg-yellow-400 border-black text-black hover:bg-yellow-300" 
+        : "bg-gray-100 border-gray-300 opacity-50 cursor-not-allowed"
+  ].join(" ");
+
+  const iconContainerClass = "w-4 h-4 rounded-full border flex items-center justify-center " + (isLikedOptimistic ? "bg-red-300 border-red-700" : "bg-yellow-300 border-yellow-600");
 
   return (
     <div 
@@ -738,19 +753,9 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
           <button 
             onClick={handleLike}
             disabled={!user}
-            className={`
-              flex items-center space-x-2 px-3 py-1 rounded-full border-2 
-              transition-all duration-200 active:scale-95
-              ${
-                isLikedOptimistic
-                  ? 'bg-red-500 border-black text-white' 
-                  : user 
-                    ? 'bg-yellow-400 border-black text-black hover:bg-yellow-300' 
-                    : 'bg-gray-100 border-gray-300 opacity-50 cursor-not-allowed'
-              }
-            `}
+            className={btnClass}
           >
-            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isLikedOptimistic ? 'bg-red-300 border-red-700' : 'bg-yellow-300 border-yellow-600'}`}>
+            <div className={iconContainerClass}>
                <Heart size={10} fill={isLikedOptimistic ? "currentColor" : "none"} />
             </div>
             <span className="font-black text-sm">{likeCountOptimistic}</span>
@@ -1059,6 +1064,9 @@ export default function App() {
     ? videos.filter(v => mySubscriptions.includes(v.userId))
     : videos;
 
+  const allTabClass = "px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'all' ? 'bg-red-600 text-white' : 'bg-white text-black hover:bg-gray-100');
+  const subsTabClass = "px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'subs' ? 'bg-yellow-400 text-black' : 'bg-white text-black hover:bg-gray-100');
+
   return (
     <div className="min-h-screen bg-[#5c94fc] font-sans selection:bg-red-500 selection:text-white pb-20">
       <style>{`
@@ -1088,17 +1096,11 @@ export default function App() {
           </div>
 
           <div className="flex gap-2">
-             <button 
-               onClick={() => setFeedFilter('all')}
-               className={`px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 ${feedFilter === 'all' ? 'bg-red-600 text-white' : 'bg-white text-black hover:bg-gray-100'}`}
-             >
+             <button onClick={() => setFeedFilter('all')} className={allTabClass}>
                <Globe size={14} className="inline mr-2" />
                WORLD 1-1
              </button>
-             <button 
-               onClick={() => setFeedFilter('subs')}
-               className={`px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 ${feedFilter === 'subs' ? 'bg-yellow-400 text-black' : 'bg-white text-black hover:bg-gray-100'}`}
-             >
+             <button onClick={() => setFeedFilter('subs')} className={subsTabClass}>
                <Star size={14} className="inline mr-2" />
                STAR WORLD
              </button>
