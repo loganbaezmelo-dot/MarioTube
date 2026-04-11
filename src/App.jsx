@@ -23,12 +23,19 @@ import {
   arrayUnion,
   arrayRemove
 } from 'firebase/firestore';
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL
+} from 'firebase/storage';
 import { 
   Play, 
   Pause, 
   Upload, 
   LogOut, 
   X, 
+  User as UserIcon, 
   Gamepad2, 
   ArrowLeft, 
   Settings, 
@@ -59,6 +66,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
 
 const VIDEO_COLLECTION = 'mario-tube-videos';
@@ -92,18 +100,18 @@ const PixelButton = ({ children, onClick, color = 'red', className = '', type = 
     white: 'bg-white border-gray-300 text-black hover:bg-gray-100'
   };
 
+  const baseClasses = "relative px-4 py-2 font-bold uppercase tracking-widest text-xs sm:text-sm border-b-4 border-r-4 active:border-b-0 active:border-r-0 active:translate-y-1 active:translate-x-1 transition-all duration-75 pixel-font shadow-lg";
+  const colorClass = colors[color] || colors.red;
+  const disabledClass = disabled ? "opacity-50 cursor-not-allowed grayscale" : "";
+  
+  const finalClassName = [baseClasses, colorClass, className, disabledClass].join(" ");
+
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`
-        relative px-4 py-2 font-bold uppercase tracking-widest text-xs sm:text-sm
-        border-b-4 border-r-4 active:border-b-0 active:border-r-0 active:translate-y-1 active:translate-x-1
-        transition-all duration-75 pixel-font shadow-lg
-        ${colors[color]} ${className}
-        ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}
-      `}
+      className={finalClassName}
     >
       {children}
     </button>
@@ -768,41 +776,79 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
 };
 
 const UploadModal = ({ isOpen, onClose, user }) => {
+  const [activeTab, setActiveTab] = useState('link'); // 'link' | 'file'
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   if (!isOpen) return null;
 
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      if (selected.size > 20971520) {
+        alert("File too big! Limit is 20MB to save space.");
+        return;
+      }
+      setFile(selected);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !url) return;
-
-    const ytid = getYoutubeId(url);
-    if (!ytid) {
-      alert("Please enter a valid YouTube link.");
-      return;
-    }
+    if (!title) return;
+    if (activeTab === 'link' && !url) return;
+    if (activeTab === 'file' && !file) return;
 
     setLoading(true);
 
     try {
-      await addDoc(collection(db, VIDEO_COLLECTION), {
-        title,
-        url: url,
-        likedBy: [], 
-        userId: user.uid,
-        username: user.displayName || 'Player 1',
-        createdAt: serverTimestamp()
-      });
-      setTitle('');
-      setUrl('');
-      setLoading(false);
-      onClose();
+      if (activeTab === 'file') {
+        const storageRef = ref(storage, `videos/${user.uid}/${Date.now()}_${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            setProgress(progress);
+          },
+          (error) => {
+            console.error("Upload failed:", error);
+            setLoading(false);
+            alert(`Upload failed: ${error.message} (Code: ${error.code})`);
+          },
+          async () => {
+            const finalUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            await createVideoDoc(finalUrl);
+          }
+        );
+      } else {
+         await createVideoDoc(url);
+      }
     } catch (error) {
       console.error("Error: ", error);
       setLoading(false);
     }
+  };
+
+  const createVideoDoc = async (videoUrl) => {
+    await addDoc(collection(db, VIDEO_COLLECTION), {
+      title,
+      url: videoUrl,
+      likedBy: [], 
+      userId: user.uid,
+      username: user.displayName || 'Player 1',
+      createdAt: serverTimestamp()
+    });
+    setTitle('');
+    setUrl('');
+    setFile(null);
+    setProgress(0);
+    setLoading(false);
+    onClose();
   };
 
   return (
@@ -828,19 +874,66 @@ const UploadModal = ({ isOpen, onClose, user }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">YouTube URL</label>
-            <input 
-              type="url" 
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://youtube.com/..."
-              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
-            />
-            <p className="text-[10px] mt-2 text-green-800 font-bold flex items-center gap-1">
-              <Info size={10} /> MarioTube exclusively supports YouTube links.
-            </p>
+          <div className="flex border-b-4 border-black mb-4">
+             <button
+               type="button" 
+               onClick={() => setActiveTab('link')}
+               className={`flex-1 py-2 font-bold pixel-font text-xs flex items-center justify-center gap-2 ${activeTab === 'link' ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}`}
+             >
+               <LinkIcon size={14} /> FREE (LINK)
+             </button>
+             <button 
+               type="button"
+               onClick={() => setActiveTab('file')}
+               className={`flex-1 py-2 font-bold pixel-font text-xs flex items-center justify-center gap-2 ${activeTab === 'file' ? 'bg-yellow-400 text-black' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}`}
+             >
+               <Film size={14} /> UPLOAD (20MB)
+             </button>
           </div>
+
+          {activeTab === 'link' ? (
+             <div>
+               <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">YouTube URL</label>
+               <input 
+                 type="url" 
+                 value={url}
+                 onChange={(e) => setUrl(e.target.value)}
+                 placeholder="https://youtube.com/..."
+                 className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
+               />
+             </div>
+          ) : (
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">Select Video File</label>
+              <div className="relative border-4 border-dashed border-green-700 bg-green-50 p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-green-100 transition-colors">
+                  <input 
+                    type="file" 
+                    accept="video/*"
+                    onChange={handleFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Film size={32} className="text-green-700 mb-2" />
+                  <span className="font-bold text-green-800 text-sm pixel-font">
+                    {file ? file.name : "CLICK TO CHOOSE"}
+                  </span>
+              </div>
+              <p className="text-[10px] mt-2 text-red-600 font-bold flex items-center gap-1">
+                 <AlertTriangle size={10} /> Max 20MB (Consumes Free Quota)
+               </p>
+            </div>
+          )}
+
+          {loading && activeTab === 'file' && (
+             <div className="w-full border-4 border-black bg-gray-300 h-8 relative">
+               <div 
+                 className="h-full bg-yellow-400 transition-all duration-200"
+                 style={{ width: `${progress}%` }}
+               ></div>
+               <span className="absolute inset-0 flex items-center justify-center text-xs font-bold pixel-font">
+                 UPLOADING {Math.round(progress)}%
+               </span>
+             </div>
+          )}
 
           <div className="flex justify-end pt-4">
             <PixelButton color="green" type="submit" className="w-full" disabled={loading}>
@@ -886,8 +979,8 @@ const LandingPage = ({ onGoogleLogin }) => {
 
             <div className="text-left bg-[#333] p-4 border-2 border-gray-600 rounded w-full max-w-md mb-8 space-y-3 font-mono text-sm text-gray-300">
               <div className="flex items-start gap-2">
-                <LinkIcon size={16} className="text-blue-400 shrink-0 mt-1" />
-                <p>Submit levels using <span className="text-white font-bold">YouTube links</span>.</p>
+                <Upload size={16} className="text-blue-400 shrink-0 mt-1" />
+                <p>Upload video files or use <span className="text-white font-bold">YouTube links</span>.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Star size={16} className="text-yellow-400 shrink-0 mt-1" />
