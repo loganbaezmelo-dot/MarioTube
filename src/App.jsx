@@ -590,11 +590,18 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
     <header className="sticky top-0 z-50 bg-[#5c94fc] border-b-4 border-black shadow-xl">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
         
-        <div className="flex items-center space-x-3 cursor-pointer group shrink-0" onClick={onHomeClick}>
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-lg border-2 border-black flex items-center justify-center transform group-hover:scale-105 transition-transform">
+        <div className="flex items-center space-x-3 shrink-0">
+          <div 
+            onClick={onMyChannel}
+            className="w-8 h-8 sm:w-10 sm:h-10 bg-red-600 rounded-lg border-2 border-black flex items-center justify-center transform hover:scale-105 active:scale-95 transition-transform cursor-pointer shadow-md"
+            title="Go to My Channel"
+          >
             <span className="text-white font-bold text-lg sm:text-xl pixel-font">M</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white stroke-black pixel-font tracking-tighter drop-shadow-md hidden md:block">
+          <h1 
+            onClick={onHomeClick}
+            className="text-xl sm:text-2xl font-black text-white stroke-black pixel-font tracking-tighter drop-shadow-md hidden md:block cursor-pointer hover:text-yellow-300 transition-colors"
+          >
             MarioTube
           </h1>
         </div>
