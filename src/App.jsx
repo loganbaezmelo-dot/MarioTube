@@ -1,4 +1,3 @@
-```react
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { 
@@ -15,7 +14,6 @@ import {
   onSnapshot, 
   doc, 
   updateDoc, 
-  deleteDoc,
   increment,
   serverTimestamp,
   setDoc,
@@ -25,8 +23,6 @@ import {
 } from 'firebase/firestore';
 import { 
   Play, 
-  Pause, 
-  Upload, 
   LogOut, 
   X, 
   Gamepad2, 
@@ -34,9 +30,6 @@ import {
   Settings, 
   Film, 
   Link as LinkIcon, 
-  AlertTriangle, 
-  Maximize, 
-  RotateCcw, 
   Heart,
   Star,
   Globe,
@@ -73,6 +66,11 @@ const getYoutubeId = (url) => {
   } catch (e) {
     return null;
   }
+};
+
+const isDirectVideoUrl = (url) => {
+  if (!url) return false;
+  return /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
 };
 
 const formatTime = (timestamp) => {
@@ -181,8 +179,6 @@ const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack
 
 const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscribedTo = [] }) => {
   const [uploaderData, setUploaderData] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [showShare, setShowShare] = useState(false);
   
   const likedBy = video.likedBy || [];
@@ -190,11 +186,8 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
   const [isLikedOptimistic, setIsLikedOptimistic] = useState(initialHasLiked);
   const [likeCountOptimistic, setLikeCountOptimistic] = useState(likedBy.length);
 
-  const videoRef = useRef(null);
-
-  const isUploadedFile = video.url.includes('firebasestorage');
   const ytid = getYoutubeId(video.url);
-  const canRenderYoutube = !isUploadedFile && ytid;
+  const isDirect = isDirectVideoUrl(video.url);
 
   const isSubscribed = subscribedTo.includes(video.userId);
   const isOwnChannel = currentUser?.uid === video.userId;
@@ -226,7 +219,7 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
         await updateDoc(uploaderRef, { subscriberCount: increment(-1) });
       } else {
         await setDoc(myRef, { subscribedTo: arrayUnion(video.userId) }, { merge: true });
-        await setDoc(uploaderRef, { subscriberCount: increment(1) }, { merge: true });
+        await setDoc(uploaderRef, { subscriberCount: increment(1) });
       }
     } catch (e) { console.error("Sub Error", e); }
   };
@@ -258,31 +251,6 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
     setTimeout(() => setShowShare(false), 2000);
   };
 
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (videoRef.current.paused) videoRef.current.play();
-      else videoRef.current.pause();
-      setIsPlaying(!videoRef.current.paused);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const p = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-      setProgress(p);
-    }
-  };
-
-  const MKTVButton = ({ onClick, icon: Icon }) => (
-    <button 
-      onClick={onClick}
-      className="bg-black/50 backdrop-blur-sm border-2 border-white/50 text-white rounded-full p-3 hover:bg-white hover:text-black hover:scale-110 transition-all duration-200 shadow-lg"
-    >
-      <Icon size={24} fill="currentColor" className="opacity-100" />
-    </button>
-  );
-
-  const controlsClassName = "absolute bottom-6 right-6 z-30 flex gap-4 transition-opacity duration-300 " + (isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100");
   const subBtnClassName = "ml-4 px-4 py-2 rounded-full font-bold text-xs pixel-font transition-all " + (isSubscribed ? "bg-gray-600 text-white" : "bg-red-600 text-white hover:bg-red-500");
   const likeBtnClassName = "flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all active:scale-95 " + (isLikedOptimistic ? "bg-white text-red-600 border-red-600" : "bg-[#444] border-gray-600 hover:bg-[#555]");
 
@@ -302,42 +270,27 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
              <div className="text-white font-black italic tracking-tighter text-3xl drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">MKTV</div>
            </div>
 
-           {isUploadedFile ? (
-             <>
-                <video
-                  ref={videoRef}
-                  src={video.url}
-                  className="w-full h-full object-contain"
-                  onClick={togglePlay}
-                  onTimeUpdate={handleTimeUpdate}
-                  onPlay={() => setIsPlaying(true)}
-                  onPause={() => setIsPlaying(false)}
-                  autoPlay
-                />
-                <div className={controlsClassName}>
-                   <MKTVButton onClick={() => { if(videoRef.current) videoRef.current.currentTime = 0; }} icon={RotateCcw} />
-                   <MKTVButton onClick={togglePlay} icon={isPlaying ? Pause : Play} />
-                   <MKTVButton onClick={() => { if(videoRef.current) videoRef.current.requestFullscreen(); }} icon={Maximize} />
-                </div>
-                <div className="absolute bottom-0 left-0 w-full h-3 bg-gray-800/50 cursor-pointer" onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const pos = (e.clientX - rect.left) / rect.width;
-                    if(videoRef.current) videoRef.current.currentTime = pos * videoRef.current.duration;
-                }}>
-                   <div className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.8)]" style={{ width: progress + "%" }} />
-                </div>
-             </>
+           {ytid ? (
+             <iframe
+                src={"https://www.youtube.com/embed/" + ytid + "?autoplay=1&modestbranding=1&rel=0"}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+           ) : isDirect ? (
+             <video
+               src={video.url}
+               controls
+               autoPlay
+               className="w-full h-full object-contain"
+             />
            ) : (
-             canRenderYoutube ? (
-               <iframe
-                  src={"https://www.youtube.com/embed/" + ytid + "?autoplay=1&modestbranding=1&rel=0"}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-             ) : (
-               <div className="flex items-center justify-center h-full text-red-500 pixel-font">VIDEO NOT FOUND</div>
-             )
+             <iframe
+               src={video.url}
+               className="w-full h-full bg-black"
+               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+               allowFullScreen
+             />
            )}
         </div>
 
@@ -452,7 +405,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         await updateDoc(myRef, { subscribedTo: arrayRemove(targetUser.uid) });
         await updateDoc(uploaderRef, { subscriberCount: increment(-1) });
       } else {
-        await setDoc(myRef, { subscribedTo: arrayUnion(targetUser.uid) }, { merge: true });
+        await setDoc(myRef, { subscribedTo: arrayUnion(targetUser.uid) });
         await setDoc(uploaderRef, { subscriberCount: increment(1) }, { merge: true });
       }
     } catch (e) { console.error("Sub Error", e); }
@@ -516,32 +469,39 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               <p className="pixel-font text-sm">NO PIPES FOUND IN THIS WORLD.</p>
             </div>
           ) : (
-            userVideos.map((video, index) => (
-               <div key={video.id || index} className="group relative flex flex-col items-center">
-                  <div className="mb-2 text-white pixel-font text-xs animate-bounce">
-                    {index + 1}
-                  </div>
-                  
-                  <div 
-                    className="relative w-48 md:w-64 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => onWatch(video)}
-                  >
-                    <img 
-                      src={getYoutubeId(video.url) ? ("https://img.youtube.com/vi/" + getYoutubeId(video.url) + "/hqdefault.jpg") : "https://placehold.co/600x400/000000/FFFFFF?text=Level"}
-                      onError={(e) => e.target.src = 'https://placehold.co/600x400/000000/FFFFFF?text=Video'} 
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                       <Play size={40} className="text-white drop-shadow-md" fill="white" />
-                    </div>
-                  </div>
+            userVideos.map((video, index) => {
+              const ytid = getYoutubeId(video.url);
+              const thumbUrl = ytid 
+                ? "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg"
+                : "https://placehold.co/600x400/000000/FFFFFF?text=Video+Link";
 
-                  <div className="flex flex-col items-center w-full">
-                    <div className="w-56 md:w-72 h-12 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-lg"></div>
-                    <div className="w-48 md:w-64 h-32 md:h-48 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
-                  </div>
-               </div>
-            ))
+              return (
+                <div key={video.id || index} className="group relative flex flex-col items-center">
+                   <div className="mb-2 text-white pixel-font text-xs animate-bounce">
+                     {index + 1}
+                   </div>
+                   
+                   <div 
+                     className="relative w-48 md:w-64 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
+                     onClick={() => onWatch(video)}
+                   >
+                     <img 
+                       src={thumbUrl}
+                       onError={(e) => e.target.src = 'https://placehold.co/600x400/000000/FFFFFF?text=Video'} 
+                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                     />
+                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <Play size={40} className="text-white drop-shadow-md" fill="white" />
+                     </div>
+                   </div>
+
+                   <div className="flex flex-col items-center w-full">
+                     <div className="w-56 md:w-72 h-12 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-lg"></div>
+                     <div className="w-48 md:w-64 h-32 md:h-48 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                   </div>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
@@ -619,7 +579,7 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
             </button>
             
             <PixelButton color="green" onClick={onUploadClick} className="!py-2 !px-3 !text-xs flex items-center gap-1">
-              <Upload size={14} /> <span className="hidden sm:inline">Upload</span>
+              <LinkIcon size={14} /> <span className="hidden sm:inline">Add Link</span>
             </PixelButton>
             
             <button 
@@ -639,8 +599,6 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
 };
 
 const VideoCard = ({ video, user, onUserClick, onWatch }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
   const likedBy = video.likedBy || [];
   const initialHasLiked = user && likedBy.includes(user.uid);
   const [isLikedOptimistic, setIsLikedOptimistic] = useState(initialHasLiked);
@@ -653,14 +611,8 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
 
   if (!video || !video.url) return null;
 
-  const isUploadedFile = video.url.includes('firebasestorage');
   const ytid = getYoutubeId(video.url);
-  const canRenderYoutube = !isUploadedFile && ytid;
-
-  let thumbnail = null;
-  if (canRenderYoutube) {
-    thumbnail = "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg";
-  }
+  const thumbnail = ytid ? "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg" : null;
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -704,8 +656,6 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
   return (
     <div 
       className="bg-white border-4 border-black rounded-xl overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,0.2)] transform transition-all hover:-translate-y-1 cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       onClick={() => onWatch(video)}
     >
       <div className="relative aspect-video bg-black group">
@@ -720,7 +670,7 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
                <>
                  <div className="absolute inset-0 opacity-20 bg-[#5c94fc] bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')]"></div>
                  <div className="absolute top-4 right-4 text-white opacity-50">
-                    {isUploadedFile ? <Film size={48} /> : <Film size={48} />}
+                    <Film size={48} />
                  </div>
                </>
              )}
@@ -730,7 +680,6 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
                 <Play fill="white" className="ml-1 text-white" size={32} />
               </div>
             </div>
-             {isUploadedFile && <span className="absolute bottom-4 text-white font-black pixel-font text-xs uppercase drop-shadow-md">Uploaded Level</span>}
           </div>
       </div>
 
@@ -783,9 +732,10 @@ const UploadModal = ({ isOpen, onClose, user }) => {
     e.preventDefault();
     if (!title || !url) return;
 
-    const ytid = getYoutubeId(url);
-    if (!ytid) {
-      alert("Please enter a valid YouTube link.");
+    try {
+      new URL(url);
+    } catch (e) {
+      alert("Please enter a valid video link/URL.");
       return;
     }
 
@@ -794,7 +744,7 @@ const UploadModal = ({ isOpen, onClose, user }) => {
     try {
       await addDoc(collection(db, VIDEO_COLLECTION), {
         title,
-        url: url,
+        url: url.trim(),
         likedBy: [], 
         userId: user.uid,
         username: user.displayName || 'Player 1',
@@ -814,7 +764,7 @@ const UploadModal = ({ isOpen, onClose, user }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
       <div className="bg-[#b8f7cf] w-full max-w-md border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative p-0 overflow-hidden">
         <div className="bg-[#00aa00] border-b-4 border-black p-4 flex justify-between items-center">
-          <h2 className="text-white font-bold text-xl pixel-font tracking-wider shadow-black drop-shadow-md">Warp Pipe Upload</h2>
+          <h2 className="text-white font-bold text-xl pixel-font tracking-wider shadow-black drop-shadow-md">Warp Pipe Link</h2>
           <button onClick={onClose} className="text-white hover:text-red-200 transition-colors">
             <X size={24} strokeWidth={3} />
           </button>
@@ -834,22 +784,22 @@ const UploadModal = ({ isOpen, onClose, user }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">YouTube URL</label>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">Video Link URL</label>
             <input 
               type="url" 
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://youtube.com/..."
+              placeholder="https://example.com/video.mp4 or YouTube link"
               className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
             />
             <p className="text-[10px] mt-2 text-green-800 font-bold flex items-center gap-1">
-              <Info size={10} /> MarioTube exclusively supports YouTube links.
+              <Info size={10} /> Supports YouTube links, MP4/WebM file links, and web embeds.
             </p>
           </div>
 
           <div className="flex justify-end pt-4">
             <PixelButton color="green" type="submit" className="w-full" disabled={loading}>
-              {loading ? 'WARPING...' : 'UPLOAD LEVEL'}
+              {loading ? 'WARPING...' : 'ADD LEVEL LINK'}
             </PixelButton>
           </div>
         </form>
@@ -892,7 +842,7 @@ const LandingPage = ({ onGoogleLogin }) => {
             <div className="text-left bg-[#333] p-4 border-2 border-gray-600 rounded w-full max-w-md mb-8 space-y-3 font-mono text-sm text-gray-300">
               <div className="flex items-start gap-2">
                 <LinkIcon size={16} className="text-blue-400 shrink-0 mt-1" />
-                <p>Submit levels using <span className="text-white font-bold">YouTube links</span>.</p>
+                <p>Submit levels using <span className="text-white font-bold">any video links</span>.</p>
               </div>
               <div className="flex items-start gap-2">
                 <Star size={16} className="text-yellow-400 shrink-0 mt-1" />
@@ -1115,7 +1065,7 @@ export default function App() {
                 <p className="text-white/70 text-xs pixel-font mb-4">Visit a channel and click the Star to subscribe!</p>
              )}
              {feedFilter === 'all' && (
-                <PixelButton color="green" onClick={() => setIsUploadOpen(true)}>Create First Level</PixelButton>
+                <PixelButton color="green" onClick={() => setIsUploadOpen(true)}>Add First Level Link</PixelButton>
              )}
           </div>
         ) : (
@@ -1140,6 +1090,3 @@ export default function App() {
     </div>
   );
 }
-
-
-```
