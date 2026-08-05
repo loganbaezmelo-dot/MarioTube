@@ -27,6 +27,8 @@ import {
   X, 
   Gamepad2, 
   ArrowLeft, 
+  ChevronLeft,
+  ChevronRight,
   Settings, 
   Film, 
   Link as LinkIcon, 
@@ -363,7 +365,8 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const [channelData, setChannelData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newDesc, setNewDesc] = useState('');
-  
+  const scrollContainerRef = useRef(null);
+
   const isSubscribed = subscribedTo.includes(targetUser.uid);
   const isOwnChannel = currentUser?.uid === targetUser.uid;
 
@@ -411,7 +414,22 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
     } catch (e) { console.error("Sub Error", e); }
   };
 
-  const userVideos = videos.filter(v => v.userId === targetUser.uid);
+  const userVideos = videos
+    .filter(v => v.userId === targetUser.uid)
+    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -220, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 220, behavior: 'smooth' });
+    }
+  };
+
   const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
@@ -425,7 +443,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
       <div className="fixed top-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/0078b4033c4c374.png')] bg-repeat-x z-10 opacity-50"></div>
 
       <div className="max-w-6xl mx-auto mt-20 relative z-20">
-        <div className="text-center mb-16 space-y-4">
+        <div className="text-center mb-10 space-y-4">
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white pixel-font tracking-widest animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
@@ -463,47 +481,74 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
           </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-8 md:gap-16 pb-32">
-          {userVideos.length === 0 ? (
-            <div className="text-center mt-12 opacity-50">
-              <p className="pixel-font text-sm">NO PIPES FOUND IN THIS WORLD.</p>
+        {userVideos.length === 0 ? (
+          <div className="text-center mt-12 opacity-50 pb-32">
+            <p className="pixel-font text-sm">NO PIPES FOUND IN THIS WORLD.</p>
+          </div>
+        ) : (
+          <div className="relative max-w-5xl mx-auto px-8 pb-32">
+            
+            <button 
+              onClick={scrollLeft}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-40 bg-yellow-400 hover:bg-yellow-300 text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
+            >
+              <ChevronLeft size={28} />
+            </button>
+
+            <button 
+              onClick={scrollRight}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-40 bg-yellow-400 hover:bg-yellow-300 text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
+            >
+              <ChevronRight size={28} />
+            </button>
+
+            <div 
+              ref={scrollContainerRef}
+              className="flex items-end overflow-x-auto scrollbar-none py-6 px-12 snap-x snap-mandatory"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {userVideos.map((video, index) => {
+                const ytid = getYoutubeId(video.url);
+                const thumbUrl = ytid 
+                  ? "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg"
+                  : "https://placehold.co/600x400/000000/FFFFFF?text=Video+Link";
+
+                const zIndexValue = userVideos.length - index;
+
+                return (
+                  <div 
+                    key={video.id || index} 
+                    className="group relative flex flex-col items-center shrink-0 -ml-16 first:ml-0 snap-center transition-all duration-300 hover:z-30 hover:-translate-y-2"
+                    style={{ zIndex: zIndexValue }}
+                  >
+                    <div className="mb-2 text-yellow-300 pixel-font text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
+                      WORLD {userVideos.length - index}
+                    </div>
+                    
+                    <div 
+                      className="relative w-48 md:w-56 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => onWatch(video)}
+                    >
+                      <img 
+                        src={thumbUrl}
+                        onError={(e) => e.target.src = 'https://placehold.co/600x400/000000/FFFFFF?text=Video'} 
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         <Play size={36} className="text-white drop-shadow-md" fill="white" />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center w-full">
+                      <div className="w-52 md:w-64 h-12 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl"></div>
+                      <div className="w-44 md:w-56 h-36 md:h-48 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            userVideos.map((video, index) => {
-              const ytid = getYoutubeId(video.url);
-              const thumbUrl = ytid 
-                ? "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg"
-                : "https://placehold.co/600x400/000000/FFFFFF?text=Video+Link";
-
-              return (
-                <div key={video.id || index} className="group relative flex flex-col items-center">
-                   <div className="mb-2 text-white pixel-font text-xs animate-bounce">
-                     {index + 1}
-                   </div>
-                   
-                   <div 
-                     className="relative w-48 md:w-64 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-xl cursor-pointer hover:scale-105 transition-transform"
-                     onClick={() => onWatch(video)}
-                   >
-                     <img 
-                       src={thumbUrl}
-                       onError={(e) => e.target.src = 'https://placehold.co/600x400/000000/FFFFFF?text=Video'} 
-                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                     />
-                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <Play size={40} className="text-white drop-shadow-md" fill="white" />
-                     </div>
-                   </div>
-
-                   <div className="flex flex-col items-center w-full">
-                     <div className="w-56 md:w-72 h-12 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-lg"></div>
-                     <div className="w-48 md:w-64 h-32 md:h-48 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
-                   </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <div className="fixed bottom-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2a2e85908092a00.png')] bg-repeat-x z-10"></div>
