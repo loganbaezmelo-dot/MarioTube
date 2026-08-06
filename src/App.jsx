@@ -442,7 +442,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
-    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden font-mono flex flex-col justify-between">
+    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden pixel-font flex flex-col justify-between">
       <div className="fixed top-4 left-4 z-50">
         <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft size={16} /> EXIT ZONE
@@ -453,7 +453,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
       <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
         <div className="text-center mb-4 space-y-3">
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white pixel-font tracking-widest animate-pulse">
+          <h1 className="text-xl md:text-3xl lg:text-4xl font-black text-white pixel-font tracking-wider animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
           <div className="inline-block border-4 border-white p-4 bg-black/80 max-w-2xl relative">
@@ -464,25 +464,25 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                   onClick={toggleSubscribe}
                   className={warpSubBtnClass}
                 >
-                  <Star size={32} fill={isSubscribed ? "gray" : "white"} className="text-black" />
+                  <Star size={28} fill={isSubscribed ? "gray" : "white"} className="text-black" />
                 </button>
               </div>
             )}
 
-            <h2 className="text-xl md:text-2xl text-[#e52521] pixel-font mb-2">
+            <h2 className="text-base md:text-xl text-[#e52521] pixel-font mb-2 uppercase">
               {targetUser.displayName}'S CHANNEL
             </h2>
-            <p className="text-xs md:text-sm text-gray-300 leading-relaxed pixel-font">
+            <p className="text-[10px] md:text-xs text-gray-300 leading-relaxed pixel-font">
               {channelData?.description || "This player hasn't written a bio yet."}
             </p>
-            <p className="text-xs text-yellow-400 mt-2 pixel-font">
+            <p className="text-[10px] text-yellow-400 mt-3 pixel-font uppercase">
                {channelData?.subscriberCount || 0} SUBSCRIBERS
             </p>
 
             {isOwnChannel && (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="mt-4 text-[10px] uppercase text-blue-400 hover:text-blue-300 pixel-font flex items-center gap-2 mx-auto"
+                className="mt-4 text-[9px] uppercase text-blue-400 hover:text-blue-300 pixel-font flex items-center gap-2 mx-auto"
               >
                 <Settings size={12} /> Edit Channel Info
               </button>
@@ -492,7 +492,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
         {userVideos.length === 0 ? (
           <div className="text-center my-auto opacity-50">
-            <p className="pixel-font text-sm">NO PIPES FOUND IN THIS WORLD.</p>
+            <p className="pixel-font text-xs">NO PIPES FOUND IN THIS WORLD.</p>
           </div>
         ) : (
           <div className="relative max-w-5xl mx-auto w-full px-8 my-auto">
@@ -544,7 +544,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                       transform: `scale(${scaleValue}) translateZ(${translateZ}px)`
                     }}
                   >
-                    <div className="mb-2 text-yellow-300 pixel-font text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
+                    <div className="mb-2 text-yellow-300 pixel-font text-[10px] sm:text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
                       WORLD {userVideos.length - index}
                     </div>
                     
@@ -586,12 +586,12 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
       {isEditing && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4">
           <div className="bg-blue-900 border-4 border-white p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-yellow-400 pixel-font text-lg mb-4 text-center">CHANNEL CONFIG</h3>
-            <p className="text-white pixel-font text-xs mb-4 text-center">Setup your Warp Zone description.</p>
+            <h3 className="text-yellow-400 pixel-font text-base mb-4 text-center">CHANNEL CONFIG</h3>
+            <p className="text-white pixel-font text-[10px] mb-4 text-center">Setup your Warp Zone description.</p>
             <textarea
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              className="w-full h-32 bg-black border-2 border-white text-white p-4 font-mono text-sm mb-4 focus:outline-none focus:border-yellow-400"
+              className="w-full h-32 bg-black border-2 border-white text-white p-3 pixel-font text-xs mb-4 focus:outline-none focus:border-yellow-400"
               placeholder="Ex: I speedrun World 1-1 every day..."
             />
             <div className="flex gap-2">
