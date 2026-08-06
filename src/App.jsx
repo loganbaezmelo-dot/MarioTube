@@ -92,7 +92,7 @@ const PixelButton = ({ children, onClick, color = 'red', className = '', type = 
     white: 'bg-white border-gray-300 text-black hover:bg-gray-100'
   };
 
-  const baseClasses = "relative px-4 py-2 font-bold uppercase tracking-widest text-xs sm:text-sm border-b-4 border-r-4 active:border-b-0 active:border-r-0 active:translate-y-1 active:translate-x-1 transition-all duration-75 pixel-font shadow-lg";
+  const baseClasses = "relative px-3 py-2 font-bold uppercase tracking-wider text-xs border-b-4 border-r-4 active:border-b-0 active:border-r-0 active:translate-y-1 active:translate-x-1 transition-all duration-75 pixel-font shadow-lg";
   const colorClass = colors[color] || colors.red;
   const disabledClass = disabled ? "opacity-50 cursor-not-allowed grayscale" : "";
   
@@ -125,20 +125,20 @@ const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#202020] p-4 md:p-6 pb-20">
+    <div className="min-h-screen bg-[#202020] p-4 md:p-6 pb-20 font-sans">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2 mb-4">
             <ArrowLeft size={16} /> BACK TO FEED
           </PixelButton>
-          <h2 className="text-white pixel-font text-xl md:text-2xl border-b-4 border-white pb-2">
+          <h2 className="text-white pixel-font text-lg md:text-xl border-b-4 border-white pb-2">
             SEARCH RESULTS FOR "{query}"
           </h2>
         </div>
 
         {matchedChannels.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-yellow-400 pixel-font text-sm mb-4">PLAYERS FOUND</h3>
+            <h3 className="text-yellow-400 pixel-font text-xs mb-4">PLAYERS FOUND</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {matchedChannels.map(channel => (
                 <div 
@@ -146,10 +146,10 @@ const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack
                   onClick={() => onUserClick(channel)}
                   className="bg-[#333] border-2 border-white p-4 flex items-center gap-4 cursor-pointer hover:bg-[#444] transition-colors"
                 >
-                  <div className="w-12 h-12 bg-yellow-400 rounded-full border-2 border-black flex items-center justify-center">
-                    <span className="text-black font-bold text-lg pixel-font">{channel.displayName[0].toUpperCase()}</span>
+                  <div className="w-10 h-10 bg-yellow-400 rounded-full border-2 border-black flex items-center justify-center">
+                    <span className="text-black font-bold text-sm pixel-font">{channel.displayName[0].toUpperCase()}</span>
                   </div>
-                  <span className="text-white font-bold pixel-font truncate">{channel.displayName}</span>
+                  <span className="text-white font-bold truncate">{channel.displayName}</span>
                 </div>
               ))}
             </div>
@@ -157,9 +157,9 @@ const SearchResultsScreen = ({ query, videos, user, onUserClick, onWatch, onBack
         )}
 
         <div>
-          <h3 className="text-green-400 pixel-font text-sm mb-4">LEVELS FOUND ({matchedVideos.length})</h3>
+          <h3 className="text-green-400 pixel-font text-xs mb-4">LEVELS FOUND ({matchedVideos.length})</h3>
           {matchedVideos.length === 0 ? (
-            <p className="text-gray-500 pixel-font text-xs">NO LEVELS FOUND MATCHING THIS QUERY.</p>
+            <p className="text-gray-400 text-sm">No levels found matching this query.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {matchedVideos.map((video, idx) => (
@@ -253,23 +253,22 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
     setTimeout(() => setShowShare(false), 2000);
   };
 
-  const subBtnClassName = "ml-4 px-4 py-2 rounded-full font-bold text-xs pixel-font transition-all " + (isSubscribed ? "bg-gray-600 text-white" : "bg-red-600 text-white hover:bg-red-500");
-  const likeBtnClassName = "flex items-center gap-2 px-6 py-3 rounded-full border-2 transition-all active:scale-95 " + (isLikedOptimistic ? "bg-white text-red-600 border-red-600" : "bg-[#444] border-gray-600 hover:bg-[#555]");
+  const subBtnClassName = "px-3 py-1.5 rounded-full font-bold text-xs transition-all " + (isSubscribed ? "bg-gray-600 text-white" : "bg-red-600 text-white hover:bg-red-500");
+  const likeBtnClassName = "flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm transition-all active:scale-95 " + (isLikedOptimistic ? "bg-white text-red-600 border-red-600" : "bg-[#444] border-gray-600 hover:bg-[#555]");
 
   return (
-    <div className="min-h-screen bg-[#202020] text-white font-mono flex flex-col">
-      <div className="bg-[#5c94fc] p-4 border-b-4 border-black flex justify-between items-center sticky top-0 z-50 shadow-xl">
+    <div className="min-h-screen bg-[#202020] text-white font-sans flex flex-col">
+      <div className="bg-[#5c94fc] p-3 border-b-4 border-black flex justify-between items-center sticky top-0 z-50 shadow-xl">
         <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft size={16} /> BACK
         </PixelButton>
-        <div className="text-white font-black pixel-font text-xl drop-shadow-md">MKTV PLAYER</div>
+        <div className="text-white font-black pixel-font text-base sm:text-lg drop-shadow-md">MKTV PLAYER</div>
       </div>
 
-      <div className="max-w-5xl mx-auto w-full flex-1 p-4 md:p-6 space-y-6">
-        
+      <div className="max-w-4xl mx-auto w-full flex-1 p-4 space-y-4">
         <div className="bg-black border-4 border-white rounded-xl overflow-hidden shadow-2xl relative aspect-video group">
-           <div className="absolute top-4 left-4 z-20 pointer-events-none opacity-50">
-             <div className="text-white font-black italic tracking-tighter text-3xl drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">MKTV</div>
+           <div className="absolute top-3 left-3 z-20 pointer-events-none opacity-50">
+             <div className="text-white font-black italic tracking-tighter text-2xl drop-shadow-[2px_2px_0_rgba(0,0,0,0.8)]">MKTV</div>
            </div>
 
            {ytid ? (
@@ -296,32 +295,32 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
            )}
         </div>
 
-        <div className="bg-[#333] border-4 border-black p-6 rounded-lg shadow-lg flex flex-col md:flex-row gap-6 justify-between">
-          <div className="flex-1 space-y-4">
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white leading-tight">{video.title}</h1>
-              <div className="flex items-center gap-4 mt-2 text-gray-400 text-xs pixel-font">
-                <span>{video.createdAt ? formatTime(video.createdAt) : 'Unknown Date'}</span>
-                <span>•</span>
-                <span>ID: {video.id.slice(0,6)}</span>
-              </div>
+        <div className="bg-[#333] border-2 border-gray-700 p-4 rounded-lg shadow-lg flex flex-col gap-4">
+          <div>
+            <h1 className="text-lg md:text-xl font-bold text-white leading-snug">{video.title}</h1>
+            <div className="flex items-center gap-3 mt-1 text-gray-400 text-xs">
+              <span>{video.createdAt ? formatTime(video.createdAt) : 'Unknown Date'}</span>
+              <span>•</span>
+              <span>ID: {video.id.slice(0,6)}</span>
             </div>
+          </div>
 
-            <div className="flex items-center gap-4 border-t-2 border-gray-600 pt-4">
+          <div className="flex items-center justify-between border-t border-gray-700 pt-3 flex-wrap gap-3">
+            <div className="flex items-center gap-3">
               <div 
-                className="w-12 h-12 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                className="w-10 h-10 bg-yellow-400 rounded-full border-2 border-white flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
                 onClick={() => onNavigateToChannel({ uid: video.userId, displayName: video.username })}
               >
-                <span className="text-black font-bold text-lg pixel-font">{video.username?.[0]?.toUpperCase()}</span>
+                <span className="text-black font-bold text-sm pixel-font">{video.username?.[0]?.toUpperCase()}</span>
               </div>
               <div>
                 <h3 
-                  className="font-bold text-white hover:underline cursor-pointer"
+                  className="font-bold text-sm text-white hover:underline cursor-pointer"
                   onClick={() => onNavigateToChannel({ uid: video.userId, displayName: video.username })}
                 >
                   {video.username}
                 </h3>
-                <p className="text-xs text-gray-400 pixel-font">
+                <p className="text-xs text-gray-400">
                   {uploaderData?.subscriberCount || 0} subscribers
                 </p>
               </div>
@@ -331,29 +330,29 @@ const WatchScreen = ({ video, currentUser, onBack, onNavigateToChannel, subscrib
                   onClick={handleToggleSubscribe}
                   className={subBtnClassName}
                 >
-                  {isSubscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
+                  {isSubscribed ? 'Subscribed' : 'Subscribe'}
                 </button>
               )}
             </div>
-          </div>
 
-          <div className="flex md:flex-col gap-3 justify-start md:items-end">
-             <button 
-               onClick={handleLike}
-               disabled={!currentUser}
-               className={likeBtnClassName}
-             >
-               <Heart size={20} fill={isLikedOptimistic ? "currentColor" : "none"} />
-               <span className="font-bold pixel-font">{likeCountOptimistic} LIKES</span>
-             </button>
+            <div className="flex items-center gap-2">
+               <button 
+                 onClick={handleLike}
+                 disabled={!currentUser}
+                 className={likeBtnClassName}
+               >
+                 <Heart size={16} fill={isLikedOptimistic ? "currentColor" : "none"} />
+                 <span className="font-bold text-xs">{likeCountOptimistic} Likes</span>
+               </button>
 
-             <button 
-               onClick={handleShare}
-               className="flex items-center gap-2 px-6 py-3 rounded-full border-2 bg-[#444] border-gray-600 hover:bg-[#555] active:scale-95"
-             >
-               {showShare ? <Copy size={20} className="text-green-400" /> : <Share2 size={20} />}
-               <span className="font-bold pixel-font">{showShare ? 'COPIED!' : 'SHARE'}</span>
-             </button>
+               <button 
+                 onClick={handleShare}
+                 className="flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-[#444] border-gray-600 hover:bg-[#555] active:scale-95 text-xs font-bold"
+               >
+                 {showShare ? <Copy size={16} className="text-green-400" /> : <Share2 size={16} />}
+                 <span>{showShare ? 'Copied!' : 'Share'}</span>
+               </button>
+            </div>
           </div>
         </div>
       </div>
@@ -442,7 +441,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
-    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden pixel-font flex flex-col justify-between">
+    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden flex flex-col justify-between">
       <div className="fixed top-4 left-4 z-50">
         <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft size={16} /> EXIT ZONE
@@ -453,7 +452,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
       <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
         <div className="text-center mb-4 space-y-3">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white pixel-font tracking-wider animate-pulse">
+          <h1 className="text-sm sm:text-lg md:text-xl font-black text-white pixel-font tracking-wider animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
           <div className="inline-block border-4 border-white p-4 bg-black/80 max-w-2xl relative">
@@ -464,25 +463,25 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                   onClick={toggleSubscribe}
                   className={warpSubBtnClass}
                 >
-                  <Star size={28} fill={isSubscribed ? "gray" : "white"} className="text-black" />
+                  <Star size={24} fill={isSubscribed ? "gray" : "white"} className="text-black" />
                 </button>
               </div>
             )}
 
-            <h2 className="text-xs sm:text-base md:text-lg text-[#e52521] pixel-font mb-2 uppercase">
+            <h2 className="text-xs sm:text-sm md:text-base text-[#e52521] pixel-font mb-2 uppercase">
               {targetUser.displayName}'S CHANNEL
             </h2>
-            <p className="text-[10px] sm:text-xs text-gray-300 leading-relaxed pixel-font">
+            <p className="text-[10px] sm:text-xs text-gray-300 leading-relaxed font-sans">
               {channelData?.description || "This player hasn't written a bio yet."}
             </p>
-            <p className="text-[10px] sm:text-xs text-yellow-400 mt-3 pixel-font uppercase">
+            <p className="text-[10px] text-yellow-400 mt-2 pixel-font uppercase">
                {channelData?.subscriberCount || 0} SUBSCRIBERS
             </p>
 
             {isOwnChannel && (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="mt-4 text-[9px] uppercase text-blue-400 hover:text-blue-300 pixel-font flex items-center gap-2 mx-auto"
+                className="mt-3 text-[9px] uppercase text-blue-400 hover:text-blue-300 pixel-font flex items-center gap-2 mx-auto"
               >
                 <Settings size={12} /> Edit Channel Info
               </button>
@@ -502,7 +501,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               disabled={activeIndex === 0}
               className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
             >
-              <ChevronLeft size={28} />
+              <ChevronLeft size={24} />
             </button>
 
             <button 
@@ -510,13 +509,13 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               disabled={activeIndex === userVideos.length - 1}
               className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
             >
-              <ChevronRight size={28} />
+              <ChevronRight size={24} />
             </button>
 
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              className="flex items-end overflow-x-auto py-8 px-24 snap-x snap-mandatory perspective-[1000px] touch-pan-x"
+              className="flex items-end overflow-x-auto py-8 px-20 snap-x snap-mandatory touch-pan-x"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {userVideos.map((video, index) => {
@@ -529,27 +528,25 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                 const distance = Math.abs(index - activeIndex);
                 
                 const computedZIndex = isCurrent ? 40 : 30 - distance;
-                const scaleValue = isCurrent ? 1.05 : 0.82;
-                const translateZ = isCurrent ? 0 : -80;
                 const opacityValue = isCurrent ? 1 : 0.65;
 
                 return (
                   <div 
                     key={video.id || index} 
                     onClick={() => scrollToIndex(index)}
-                    className="group relative flex flex-col items-center shrink-0 -ml-20 sm:-ml-24 first:ml-0 snap-center cursor-pointer transition-all duration-300 transform-gpu"
+                    className="group relative flex flex-col items-center shrink-0 -ml-16 sm:-ml-20 first:ml-0 snap-center cursor-pointer transition-all duration-300"
                     style={{ 
                       zIndex: computedZIndex,
                       opacity: opacityValue,
-                      transform: `scale(${scaleValue}) translateZ(${translateZ}px)`
+                      transform: isCurrent ? 'scale(1)' : 'scale(0.85)'
                     }}
                   >
-                    <div className="mb-2 text-yellow-300 pixel-font text-[10px] sm:text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
+                    <div className="mb-2 text-yellow-300 pixel-font text-[9px] sm:text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
                       WORLD {userVideos.length - index}
                     </div>
                     
                     <div 
-                      className="relative w-44 sm:w-56 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:border-yellow-400 transition-colors"
+                      className="relative w-40 sm:w-52 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:border-yellow-400 transition-colors"
                       onClick={(e) => {
                         if (isCurrent) {
                           onWatch(video);
@@ -565,14 +562,13 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                         className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                       />
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                         <Play size={36} className="text-white drop-shadow-md" fill="white" />
+                         <Play size={32} className="text-white drop-shadow-md" fill="white" />
                       </div>
                     </div>
 
-                    {/* Pipe Graphics cleanly centered */}
                     <div className="flex flex-col items-center w-full">
-                      <div className="w-48 sm:w-60 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
-                      <div className="w-40 sm:w-52 h-24 sm:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                      <div className="w-44 sm:w-56 h-8 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
+                      <div className="w-36 sm:w-48 h-20 sm:h-28 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
                     </div>
                   </div>
                 );
@@ -587,12 +583,12 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
       {isEditing && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4">
           <div className="bg-blue-900 border-4 border-white p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-yellow-400 pixel-font text-base mb-4 text-center">CHANNEL CONFIG</h3>
-            <p className="text-white pixel-font text-[10px] mb-4 text-center">Setup your Warp Zone description.</p>
+            <h3 className="text-yellow-400 pixel-font text-xs mb-4 text-center">CHANNEL CONFIG</h3>
+            <p className="text-white text-xs mb-4 text-center">Setup your Warp Zone description.</p>
             <textarea
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              className="w-full h-32 bg-black border-2 border-white text-white p-3 pixel-font text-xs mb-4 focus:outline-none focus:border-yellow-400"
+              className="w-full h-32 bg-black border-2 border-white text-white p-3 font-sans text-xs mb-4 focus:outline-none focus:border-yellow-400"
               placeholder="Ex: I speedrun World 1-1 every day..."
             />
             <div className="flex gap-2">
@@ -620,7 +616,6 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
   return (
     <header className="sticky top-0 z-50 bg-[#5c94fc] border-b-4 border-black shadow-xl">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-        
         <div className="flex items-center space-x-3 shrink-0">
           <div 
             onClick={onMyChannel}
@@ -643,7 +638,7 @@ const Header = ({ user, onUploadClick, onMyChannel, onHomeClick, onSearch }) => 
              value={query}
              onChange={(e) => setQuery(e.target.value)}
              placeholder="Search levels..."
-             className="w-full pl-3 pr-10 py-2 border-4 border-black pixel-font text-xs md:text-sm focus:outline-none focus:ring-4 focus:ring-yellow-400"
+             className="w-full pl-3 pr-10 py-2 border-4 border-black pixel-font text-xs focus:outline-none focus:ring-4 focus:ring-yellow-400"
            />
            <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
              <Search size={18} />
@@ -768,7 +763,7 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
 
       <div className="p-4 bg-[#f8f9fa]">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-bold text-lg leading-tight line-clamp-2 text-gray-800 hover:text-red-600 transition-colors">{video.title}</h3>
+          <h3 className="font-bold text-base leading-tight line-clamp-2 text-gray-800 hover:text-red-600 transition-colors">{video.title}</h3>
         </div>
         
         <div className="flex items-center justify-between mt-4">
@@ -776,8 +771,8 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
             className="flex items-center space-x-2 cursor-pointer hover:bg-gray-200 p-1 rounded transition-colors"
             onClick={(e) => { e.stopPropagation(); onUserClick({ uid: video.userId, displayName: video.username }); }}
           >
-            <div className="w-8 h-8 rounded-full bg-yellow-400 border-2 border-black flex items-center justify-center">
-              <span className="font-bold text-xs">{video.username?.[0]?.toUpperCase() || 'P'}</span>
+            <div className="w-7 h-7 rounded-full bg-yellow-400 border-2 border-black flex items-center justify-center">
+              <span className="font-bold text-xs pixel-font">{video.username?.[0]?.toUpperCase() || 'P'}</span>
             </div>
             <span className="text-xs font-bold text-gray-600 uppercase hover:underline">{video.username || 'Unknown'}</span>
           </div>
@@ -790,7 +785,7 @@ const VideoCard = ({ video, user, onUserClick, onWatch }) => {
             <div className={iconContainerClass}>
                <Heart size={10} fill={isLikedOptimistic ? "currentColor" : "none"} />
             </div>
-            <span className="font-black text-sm">{likeCountOptimistic}</span>
+            <span className="font-black text-xs">{likeCountOptimistic}</span>
           </button>
         </div>
       </div>
@@ -844,43 +839,43 @@ const UploadModal = ({ isOpen, onClose, user }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm font-sans">
       <div className="bg-[#b8f7cf] w-full max-w-md border-4 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] relative p-0 overflow-hidden">
         <div className="bg-[#00aa00] border-b-4 border-black p-4 flex justify-between items-center">
-          <h2 className="text-white font-bold text-xl pixel-font tracking-wider shadow-black drop-shadow-md">Warp Pipe Link</h2>
+          <h2 className="text-white font-bold text-lg pixel-font tracking-wider shadow-black drop-shadow-md">Warp Pipe Link</h2>
           <button onClick={onClose} className="text-white hover:text-red-200 transition-colors">
             <X size={24} strokeWidth={3} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">Level Title</label>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900 pixel-font">Level Title</label>
             <input 
               type="text" 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: World 1-1 Speedrun"
-              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
+              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold text-sm"
               autoFocus
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900">Video Link URL</label>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-green-900 pixel-font">Video Link URL</label>
             <input 
               type="url" 
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/video.mp4 or YouTube link"
-              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold"
+              className="w-full p-3 border-4 border-black bg-white focus:outline-none focus:ring-4 focus:ring-green-400 font-bold text-sm"
             />
-            <p className="text-[10px] mt-2 text-green-800 font-bold flex items-center gap-1">
-              <Info size={10} /> Supports YouTube links, MP4/WebM file links, and web embeds.
+            <p className="text-xs mt-2 text-green-800 font-semibold flex items-center gap-1">
+              <Info size={12} /> Supports YouTube links, direct MP4 file links, and web embeds.
             </p>
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-2">
             <PixelButton color="green" type="submit" className="w-full" disabled={loading}>
               {loading ? 'WARPING...' : 'ADD LEVEL LINK'}
             </PixelButton>
@@ -901,28 +896,27 @@ const LandingPage = ({ onGoogleLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#5c94fc] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#5c94fc] flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
       <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/brick-wall.png')]"></div>
 
       <div className="max-w-2xl w-full z-10 flex flex-col items-center">
-        
         <div className="animate-bounce mb-8 text-center">
-          <h1 className="text-6xl md:text-8xl font-black text-[#e52521] pixel-font drop-shadow-[4px_4px_0_#fff]">
+          <h1 className="text-5xl md:text-7xl font-black text-[#e52521] pixel-font drop-shadow-[4px_4px_0_#fff]">
             MARIO
-            <span className="text-white block text-4xl md:text-6xl mt-2 drop-shadow-[4px_4px_0_#000] stroke-black">TUBE</span>
+            <span className="text-white block text-3xl md:text-5xl mt-2 drop-shadow-[4px_4px_0_#000] stroke-black">TUBE</span>
           </h1>
         </div>
 
         <div className="bg-white border-4 border-black p-1 rounded-lg w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)] mb-8">
           <div className="bg-black p-6 md:p-8 border-2 border-white rounded flex flex-col items-center text-center">
             
-            <h2 className="text-yellow-400 pixel-font text-lg md:text-xl mb-4">WELCOME TO STAR WORLD</h2>
+            <h2 className="text-yellow-400 pixel-font text-base md:text-lg mb-4">WELCOME TO STAR WORLD</h2>
             
-            <p className="text-white font-mono text-sm md:text-base leading-relaxed mb-6 max-w-lg">
+            <p className="text-white text-sm md:text-base leading-relaxed mb-6 max-w-lg">
               MarioTube is a fan-made hub for curating and sharing your favorite Mushroom Kingdom content. 
             </p>
 
-            <div className="text-left bg-[#333] p-4 border-2 border-gray-600 rounded w-full max-w-md mb-8 space-y-3 font-mono text-sm text-gray-300">
+            <div className="text-left bg-[#333] p-4 border-2 border-gray-600 rounded w-full max-w-md mb-8 space-y-3 text-sm text-gray-300">
               <div className="flex items-start gap-2">
                 <LinkIcon size={16} className="text-blue-400 shrink-0 mt-1" />
                 <p>Submit levels using <span className="text-white font-bold">any video links</span>.</p>
@@ -942,10 +936,10 @@ const LandingPage = ({ onGoogleLogin }) => {
               <button 
                 onClick={handleStart}
                 disabled={loading}
-                className="w-full py-4 bg-white hover:bg-gray-200 text-black border-4 border-gray-400 shadow-[4px_4px_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-3"
+                className="w-full py-3 bg-white hover:bg-gray-200 text-black border-4 border-gray-400 shadow-[4px_4px_0_#000] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all flex items-center justify-center gap-3"
               >
-                <img src="https://www.google.com/favicon.ico" alt="G" className="w-6 h-6" />
-                <span className="pixel-font font-bold tracking-tighter">
+                <img src="https://www.google.com/favicon.ico" alt="G" className="w-5 h-5" />
+                <span className="pixel-font font-bold text-xs tracking-tighter">
                    {loading ? 'WARPING...' : 'LOGIN TO PLAY'}
                 </span>
               </button>
@@ -958,11 +952,10 @@ const LandingPage = ({ onGoogleLogin }) => {
           <p className="text-white/80 font-bold text-xs pixel-font uppercase">
             FANMADE PROJECT
           </p>
-          <p className="text-black/60 font-mono text-[10px] max-w-md mx-auto leading-tight px-4">
+          <p className="text-black/60 text-[10px] max-w-md mx-auto leading-tight px-4">
             MarioTube is a portfolio project and is not affiliated with, endorsed by, or connected to Nintendo. All characters and assets belong to their respective owners.
           </p>
         </div>
-
       </div>
     </div>
   );
@@ -1052,7 +1045,7 @@ export default function App() {
       `}</style>
 
       {loading ? (
-        <div className="min-h-screen bg-black text-white p-10 pixel-font">LOADING...</div>
+        <div className="min-h-screen bg-black text-white p-10 pixel-font text-xs">LOADING...</div>
       ) : !user ? (
         <LandingPage onGoogleLogin={handleGoogleLogin} />
       ) : currentView === 'search' ? (
@@ -1107,7 +1100,7 @@ export default function App() {
                 <h2 className="text-white font-black text-2xl md:text-4xl drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)] uppercase italic transform -skew-x-6">
                   {feedFilter === 'all' ? 'World 1-1' : 'Star World'}
                 </h2>
-                <p className="text-white font-bold text-sm bg-black/30 inline-block px-2 mt-1 rounded">
+                <p className="text-white font-bold text-xs bg-black/30 inline-block px-2 mt-1 rounded pixel-font">
                   {feedFilter === 'subs' 
                     ? videos.filter(v => mySubscriptions.includes(v.userId)).length 
                     : videos.length} LEVELS FOUND
@@ -1129,7 +1122,7 @@ export default function App() {
             {(feedFilter === 'subs' ? videos.filter(v => mySubscriptions.includes(v.userId)) : videos).length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 bg-white/10 border-4 border-dashed border-white/40 rounded-xl">
                  <Gamepad2 size={64} className="text-white mb-4 opacity-50" />
-                 <p className="text-white text-xl font-bold mb-4">No levels found!</p>
+                 <p className="text-white text-lg font-bold mb-2">No levels found!</p>
                  {feedFilter === 'subs' && (
                     <p className="text-white/70 text-xs pixel-font mb-4">Visit a channel and click the Star to subscribe!</p>
                  )}
