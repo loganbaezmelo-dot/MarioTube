@@ -421,7 +421,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const scrollLeft = scrollContainerRef.current.scrollLeft;
-    const itemWidth = 160;
+    const itemWidth = 220;
     const newIndex = Math.round(scrollLeft / itemWidth);
     
     if (newIndex >= 0 && newIndex < userVideos.length && newIndex !== activeIndex) {
@@ -433,7 +433,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
     if (index < 0 || index >= userVideos.length) return;
     setActiveIndex(index);
     if (scrollContainerRef.current) {
-      const itemWidth = 160;
+      const itemWidth = 220;
       scrollContainerRef.current.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
     }
   };
@@ -441,7 +441,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
-    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden flex flex-col justify-between">
+    <div className="min-h-screen w-screen bg-black text-white p-4 relative overflow-y-auto font-sans flex flex-col justify-start pb-12">
       <div className="fixed top-4 left-4 z-50">
         <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft size={16} /> EXIT ZONE
@@ -450,12 +450,12 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
       <div className="fixed top-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/0078b4033c4c374.png')] bg-repeat-x z-10 opacity-50"></div>
 
-      <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
-        <div className="text-center mb-4 space-y-3">
-          <h1 className="text-sm sm:text-lg md:text-xl font-black text-white pixel-font tracking-wider animate-pulse">
+      <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex flex-col items-center">
+        <div className="text-center mb-6 space-y-3 w-full">
+          <h1 className="text-base sm:text-xl md:text-2xl font-black text-white pixel-font tracking-wider animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
-          <div className="inline-block border-4 border-white p-4 bg-black/80 max-w-2xl relative">
+          <div className="inline-block border-4 border-white p-4 bg-black/80 max-w-xl w-full relative">
             
             {!isOwnChannel && currentUser && (
               <div className="absolute -top-6 -right-6 transform rotate-12">
@@ -471,7 +471,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
             <h2 className="text-xs sm:text-sm md:text-base text-[#e52521] pixel-font mb-2 uppercase">
               {targetUser.displayName}'S CHANNEL
             </h2>
-            <p className="text-[10px] sm:text-xs text-gray-300 leading-relaxed font-sans">
+            <p className="text-xs text-gray-300 leading-relaxed">
               {channelData?.description || "This player hasn't written a bio yet."}
             </p>
             <p className="text-[10px] text-yellow-400 mt-2 pixel-font uppercase">
@@ -490,12 +490,11 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         </div>
 
         {userVideos.length === 0 ? (
-          <div className="text-center my-auto opacity-50">
+          <div className="text-center my-12 opacity-50">
             <p className="pixel-font text-xs">NO PIPES FOUND IN THIS WORLD.</p>
           </div>
         ) : (
-          <div className="relative max-w-5xl mx-auto w-full px-8 my-auto">
-            
+          <div className="relative max-w-5xl mx-auto w-full px-8 mt-4">
             <button 
               onClick={() => scrollToIndex(activeIndex - 1)}
               disabled={activeIndex === 0}
@@ -515,7 +514,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              className="flex items-end overflow-x-auto py-8 px-20 snap-x snap-mandatory touch-pan-x"
+              className="flex items-end overflow-x-auto py-6 px-16 snap-x snap-mandatory touch-pan-x"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {userVideos.map((video, index) => {
@@ -534,11 +533,11 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                   <div 
                     key={video.id || index} 
                     onClick={() => scrollToIndex(index)}
-                    className="group relative flex flex-col items-center shrink-0 -ml-16 sm:-ml-20 first:ml-0 snap-center cursor-pointer transition-all duration-300"
+                    className="group relative flex flex-col items-center shrink-0 -ml-12 sm:-ml-16 first:ml-0 snap-center cursor-pointer transition-all duration-300"
                     style={{ 
                       zIndex: computedZIndex,
                       opacity: opacityValue,
-                      transform: isCurrent ? 'scale(1)' : 'scale(0.85)'
+                      transform: isCurrent ? 'scale(1.05)' : 'scale(0.88)'
                     }}
                   >
                     <div className="mb-2 text-yellow-300 pixel-font text-[9px] sm:text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
@@ -546,7 +545,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                     </div>
                     
                     <div 
-                      className="relative w-40 sm:w-52 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:border-yellow-400 transition-colors"
+                      className="relative w-52 sm:w-64 aspect-video bg-gray-900 border-4 border-white rounded mb-[-2px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:border-yellow-400 transition-colors"
                       onClick={(e) => {
                         if (isCurrent) {
                           onWatch(video);
@@ -566,9 +565,10 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                       </div>
                     </div>
 
+                    {/* Proportional Pipe Graphics */}
                     <div className="flex flex-col items-center w-full">
-                      <div className="w-44 sm:w-56 h-8 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
-                      <div className="w-36 sm:w-48 h-20 sm:h-28 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                      <div className="w-[108%] h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
+                      <div className="w-[92%] h-32 sm:h-40 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
                     </div>
                   </div>
                 );
@@ -578,7 +578,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         )}
       </div>
 
-      <div className="w-full h-12 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2a2e85908092a00.png')] bg-repeat-x z-10 shrink-0"></div>
+      <div className="fixed bottom-0 left-0 w-full h-12 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2a2e85908092a00.png')] bg-repeat-x z-10"></div>
 
       {isEditing && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4">
