@@ -453,7 +453,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
       <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
         <div className="text-center mb-4 space-y-3">
-          <h1 className="text-xl md:text-3xl lg:text-4xl font-black text-white pixel-font tracking-wider animate-pulse">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-black text-white pixel-font tracking-wider animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
           <div className="inline-block border-4 border-white p-4 bg-black/80 max-w-2xl relative">
@@ -469,13 +469,13 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               </div>
             )}
 
-            <h2 className="text-base md:text-xl text-[#e52521] pixel-font mb-2 uppercase">
+            <h2 className="text-xs sm:text-base md:text-lg text-[#e52521] pixel-font mb-2 uppercase">
               {targetUser.displayName}'S CHANNEL
             </h2>
-            <p className="text-[10px] md:text-xs text-gray-300 leading-relaxed pixel-font">
+            <p className="text-[10px] sm:text-xs text-gray-300 leading-relaxed pixel-font">
               {channelData?.description || "This player hasn't written a bio yet."}
             </p>
-            <p className="text-[10px] text-yellow-400 mt-3 pixel-font uppercase">
+            <p className="text-[10px] sm:text-xs text-yellow-400 mt-3 pixel-font uppercase">
                {channelData?.subscriberCount || 0} SUBSCRIBERS
             </p>
 
@@ -537,7 +537,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                   <div 
                     key={video.id || index} 
                     onClick={() => scrollToIndex(index)}
-                    className="group relative flex flex-col items-center shrink-0 -ml-20 sm:-ml-28 first:ml-0 snap-center cursor-pointer transition-all duration-300 transform-gpu"
+                    className="group relative flex flex-col items-center shrink-0 -ml-20 sm:-ml-24 first:ml-0 snap-center cursor-pointer transition-all duration-300 transform-gpu"
                     style={{ 
                       zIndex: computedZIndex,
                       opacity: opacityValue,
@@ -569,6 +569,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                       </div>
                     </div>
 
+                    {/* Pipe Graphics cleanly centered */}
                     <div className="flex flex-col items-center w-full">
                       <div className="w-48 sm:w-60 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
                       <div className="w-40 sm:w-52 h-24 sm:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
@@ -1041,66 +1042,8 @@ export default function App() {
     window.scrollTo(0, 0);
   };
 
-  if (loading) return <div className="min-h-screen bg-black text-white p-10 pixel-font">LOADING...</div>;
-  if (!user) return <LandingPage onGoogleLogin={handleGoogleLogin} />;
-
-  if (currentView === 'search') {
-    return (
-      <>
-        <Header 
-          user={user} 
-          onUploadClick={() => setIsUploadOpen(true)}
-          onMyChannel={() => navigateToChannel({ uid: user.uid, displayName: user.displayName })}
-          onHomeClick={() => setCurrentView('feed')}
-          onSearch={handleSearch}
-        />
-        <SearchResultsScreen 
-          query={searchQuery}
-          videos={videos}
-          user={user}
-          onUserClick={navigateToChannel}
-          onWatch={navigateToWatch}
-          onBack={() => setCurrentView('feed')}
-        />
-        <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} user={user} />
-      </>
-    );
-  }
-
-  if (currentView === 'watch' && watchTarget) {
-    return (
-      <WatchScreen
-        video={watchTarget}
-        currentUser={user}
-        subscribedTo={mySubscriptions}
-        onBack={() => setCurrentView('feed')}
-        onNavigateToChannel={navigateToChannel}
-      />
-    );
-  }
-
-  if (currentView === 'channel' && channelTarget) {
-    return (
-      <WarpZone 
-        targetUser={channelTarget} 
-        videos={videos} 
-        currentUser={user}
-        subscribedTo={mySubscriptions}
-        onBack={() => setCurrentView('feed')} 
-        onWatch={navigateToWatch}
-      />
-    );
-  }
-
-  const filteredVideos = feedFilter === 'subs' 
-    ? videos.filter(v => mySubscriptions.includes(v.userId))
-    : videos;
-
-  const allTabClass = "px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'all' ? 'bg-red-600 text-white' : 'bg-white text-black hover:bg-gray-100');
-  const subsTabClass = "px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'subs' ? 'bg-yellow-400 text-black' : 'bg-white text-black hover:bg-gray-100');
-
   return (
-    <div className="min-h-screen bg-[#5c94fc] font-sans selection:bg-red-500 selection:text-white pb-20">
+    <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         .pixel-font { font-family: 'Press Start 2P', cursive; }
@@ -1108,67 +1051,113 @@ export default function App() {
         @keyframes blink { 50% { opacity: 0; } }
       `}</style>
 
-      <Header 
-        user={user} 
-        onUploadClick={() => setIsUploadOpen(true)}
-        onMyChannel={() => navigateToChannel({ uid: user.uid, displayName: user.displayName })}
-        onHomeClick={() => setCurrentView('feed')}
-        onSearch={handleSearch}
-      />
+      {loading ? (
+        <div className="min-h-screen bg-black text-white p-10 pixel-font">LOADING...</div>
+      ) : !user ? (
+        <LandingPage onGoogleLogin={handleGoogleLogin} />
+      ) : currentView === 'search' ? (
+        <>
+          <Header 
+            user={user} 
+            onUploadClick={() => setIsUploadOpen(true)}
+            onMyChannel={() => navigateToChannel({ uid: user.uid, displayName: user.displayName })}
+            onHomeClick={() => setCurrentView('feed')}
+            onSearch={handleSearch}
+          />
+          <SearchResultsScreen 
+            query={searchQuery}
+            videos={videos}
+            user={user}
+            onUserClick={navigateToChannel}
+            onWatch={navigateToWatch}
+            onBack={() => setCurrentView('feed')}
+          />
+          <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} user={user} />
+        </>
+      ) : currentView === 'watch' && watchTarget ? (
+        <WatchScreen
+          video={watchTarget}
+          currentUser={user}
+          subscribedTo={mySubscriptions}
+          onBack={() => setCurrentView('feed')}
+          onNavigateToChannel={navigateToChannel}
+        />
+      ) : currentView === 'channel' && channelTarget ? (
+        <WarpZone 
+          targetUser={channelTarget} 
+          videos={videos} 
+          currentUser={user}
+          subscribedTo={mySubscriptions}
+          onBack={() => setCurrentView('feed')} 
+          onWatch={navigateToWatch}
+        />
+      ) : (
+        <div className="min-h-screen bg-[#5c94fc] font-sans selection:bg-red-500 selection:text-white pb-20">
+          <Header 
+            user={user} 
+            onUploadClick={() => setIsUploadOpen(true)}
+            onMyChannel={() => navigateToChannel({ uid: user.uid, displayName: user.displayName })}
+            onHomeClick={() => setCurrentView('feed')}
+            onSearch={handleSearch}
+          />
 
-      <main className="max-w-6xl mx-auto p-4 md:p-6">
-        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between border-b-8 border-[#925a3d] pb-4 px-2 gap-4">
-          <div>
-            <h2 className="text-white font-black text-2xl md:text-4xl drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)] uppercase italic transform -skew-x-6">
-              {feedFilter === 'all' ? 'World 1-1' : 'Star World'}
-            </h2>
-            <p className="text-white font-bold text-sm bg-black/30 inline-block px-2 mt-1 rounded">
-              {filteredVideos.length} LEVELS FOUND
-            </p>
-          </div>
+          <main className="max-w-6xl mx-auto p-4 md:p-6">
+            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between border-b-8 border-[#925a3d] pb-4 px-2 gap-4">
+              <div>
+                <h2 className="text-white font-black text-2xl md:text-4xl drop-shadow-[4px_4px_0_rgba(0,0,0,0.5)] uppercase italic transform -skew-x-6">
+                  {feedFilter === 'all' ? 'World 1-1' : 'Star World'}
+                </h2>
+                <p className="text-white font-bold text-sm bg-black/30 inline-block px-2 mt-1 rounded">
+                  {feedFilter === 'subs' 
+                    ? videos.filter(v => mySubscriptions.includes(v.userId)).length 
+                    : videos.length} LEVELS FOUND
+                </p>
+              </div>
 
-          <div className="flex gap-2">
-             <button onClick={() => setFeedFilter('all')} className={allTabClass}>
-               <Globe size={14} className="inline mr-2" />
-               WORLD 1-1
-             </button>
-             <button onClick={() => setFeedFilter('subs')} className={subsTabClass}>
-               <Star size={14} className="inline mr-2" />
-               STAR WORLD
-             </button>
-          </div>
+              <div className="flex gap-2">
+                 <button onClick={() => setFeedFilter('all')} className={"px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'all' ? 'bg-red-600 text-white' : 'bg-white text-black hover:bg-gray-100')}>
+                   <Globe size={14} className="inline mr-2" />
+                   WORLD 1-1
+                 </button>
+                 <button onClick={() => setFeedFilter('subs')} className={"px-4 py-2 pixel-font text-xs font-bold border-4 border-black transition-transform active:translate-y-1 " + (feedFilter === 'subs' ? 'bg-yellow-400 text-black' : 'bg-white text-black hover:bg-gray-100')}>
+                   <Star size={14} className="inline mr-2" />
+                   STAR WORLD
+                 </button>
+              </div>
+            </div>
+
+            {(feedFilter === 'subs' ? videos.filter(v => mySubscriptions.includes(v.userId)) : videos).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-white/10 border-4 border-dashed border-white/40 rounded-xl">
+                 <Gamepad2 size={64} className="text-white mb-4 opacity-50" />
+                 <p className="text-white text-xl font-bold mb-4">No levels found!</p>
+                 {feedFilter === 'subs' && (
+                    <p className="text-white/70 text-xs pixel-font mb-4">Visit a channel and click the Star to subscribe!</p>
+                 )}
+                 {feedFilter === 'all' && (
+                    <PixelButton color="green" onClick={() => setIsUploadOpen(true)}>Add First Level Link</PixelButton>
+                 )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {(feedFilter === 'subs' ? videos.filter(v => mySubscriptions.includes(v.userId)) : videos).map((video, idx) => (
+                  <VideoCard 
+                    key={video.id || idx}
+                    video={video} 
+                    user={user} 
+                    onUserClick={navigateToChannel}
+                    onWatch={navigateToWatch}
+                  />
+                ))}
+              </div>
+            )}
+          </main>
+
+          <div className="fixed top-32 left-10 w-24 h-12 bg-white/80 rounded-full blur-xl pointer-events-none -z-0"></div>
+          <div className="fixed top-48 right-20 w-32 h-16 bg-white/80 rounded-full blur-xl pointer-events-none -z-0"></div>
+
+          <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} user={user} />
         </div>
-
-        {filteredVideos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white/10 border-4 border-dashed border-white/40 rounded-xl">
-             <Gamepad2 size={64} className="text-white mb-4 opacity-50" />
-             <p className="text-white text-xl font-bold mb-4">No levels found!</p>
-             {feedFilter === 'subs' && (
-                <p className="text-white/70 text-xs pixel-font mb-4">Visit a channel and click the Star to subscribe!</p>
-             )}
-             {feedFilter === 'all' && (
-                <PixelButton color="green" onClick={() => setIsUploadOpen(true)}>Add First Level Link</PixelButton>
-             )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredVideos.map((video, idx) => (
-              <VideoCard 
-                key={video.id || idx}
-                video={video} 
-                user={user} 
-                onUserClick={navigateToChannel}
-                onWatch={navigateToWatch}
-              />
-            ))}
-          </div>
-        )}
-      </main>
-
-      <div className="fixed top-32 left-10 w-24 h-12 bg-white/80 rounded-full blur-xl pointer-events-none -z-0"></div>
-      <div className="fixed top-48 right-20 w-32 h-16 bg-white/80 rounded-full blur-xl pointer-events-none -z-0"></div>
-
-      <UploadModal isOpen={isUploadOpen} onClose={() => setIsUploadOpen(false)} user={user} />
-    </div>
+      )}
+    </>
   );
 }
