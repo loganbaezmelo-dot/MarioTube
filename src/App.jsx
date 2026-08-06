@@ -365,6 +365,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const [channelData, setChannelData] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [newDesc, setNewDesc] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
   const scrollContainerRef = useRef(null);
 
   const isSubscribed = subscribedTo.includes(targetUser.uid);
@@ -418,15 +419,12 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
     .filter(v => v.userId === targetUser.uid)
     .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
-  const scrollLeft = () => {
+  const scrollToIndex = (index) => {
+    if (index < 0 || index >= userVideos.length) return;
+    setActiveIndex(index);
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -220, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 220, behavior: 'smooth' });
+      const cardWidth = 200;
+      scrollContainerRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
     }
   };
 
@@ -443,7 +441,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
       <div className="fixed top-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/0078b4033c4c374.png')] bg-repeat-x z-10 opacity-50"></div>
 
       <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
-        <div className="text-center mb-6 space-y-3">
+        <div className="text-center mb-4 space-y-3">
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white pixel-font tracking-widest animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
@@ -488,23 +486,27 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         ) : (
           <div className="relative max-w-5xl mx-auto w-full px-8 my-auto">
             
+            {/* Scroll Navigation Arrows */}
             <button 
-              onClick={scrollLeft}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-40 bg-yellow-400 hover:bg-yellow-300 text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
+              onClick={() => scrollToIndex(activeIndex - 1)}
+              disabled={activeIndex === 0}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-50 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
             >
               <ChevronLeft size={28} />
             </button>
 
             <button 
-              onClick={scrollRight}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-40 bg-yellow-400 hover:bg-yellow-300 text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
+              onClick={() => scrollToIndex(activeIndex + 1)}
+              disabled={activeIndex === userVideos.length - 1}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-50 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-30 disabled:cursor-not-allowed text-black p-2 border-4 border-black rounded-full shadow-lg transition-transform active:scale-95"
             >
               <ChevronRight size={28} />
             </button>
 
+            {/* 3D Perspective Container */}
             <div 
               ref={scrollContainerRef}
-              className="flex items-end overflow-x-auto py-4 px-12 snap-x snap-mandatory"
+              className="flex items-end overflow-x-auto py-8 px-16 snap-x snap-mandatory perspective-[1000px]"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {userVideos.map((video, index) => {
@@ -513,21 +515,40 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                   ? "https://img.youtube.com/vi/" + ytid + "/hqdefault.jpg"
                   : "https://placehold.co/600x400/000000/FFFFFF?text=Video+Link";
 
-                const zIndexValue = userVideos.length - index;
+                const isCurrent = index === activeIndex;
+                const distance = Math.abs(index - activeIndex);
+                
+                // Active video gets highest zIndex, surrounding videos drop behind
+                const computedZIndex = isCurrent ? 40 : 30 - distance;
+                const scaleValue = isCurrent ? 1.05 : 0.82;
+                const translateZ = isCurrent ? 0 : -80;
+                const opacityValue = isCurrent ? 1 : 0.65;
 
                 return (
                   <div 
                     key={video.id || index} 
-                    className="group relative flex flex-col items-center shrink-0 -ml-16 first:ml-0 snap-center transition-all duration-300 hover:z-30 hover:-translate-y-2"
-                    style={{ zIndex: zIndexValue }}
+                    onClick={() => scrollToIndex(index)}
+                    className="group relative flex flex-col items-center shrink-0 -ml-20 sm:-ml-28 first:ml-0 snap-center cursor-pointer transition-all duration-300 transform-gpu"
+                    style={{ 
+                      zIndex: computedZIndex,
+                      opacity: opacityValue,
+                      transform: `scale(${scaleValue}) translateZ(${translateZ}px)`
+                    }}
                   >
                     <div className="mb-2 text-yellow-300 pixel-font text-xs animate-bounce drop-shadow-[2px_2px_0_#000]">
                       WORLD {userVideos.length - index}
                     </div>
                     
                     <div 
-                      className="relative w-48 md:w-56 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                      onClick={() => onWatch(video)}
+                      className="relative w-44 sm:w-56 aspect-video bg-gray-900 border-4 border-white rounded mb-[-4px] z-10 overflow-hidden shadow-2xl cursor-pointer hover:border-yellow-400 transition-colors"
+                      onClick={(e) => {
+                        if (isCurrent) {
+                          onWatch(video);
+                        } else {
+                          e.stopPropagation();
+                          scrollToIndex(index);
+                        }
+                      }}
                     >
                       <img 
                         src={thumbUrl}
@@ -539,9 +560,10 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                       </div>
                     </div>
 
+                    {/* Unified Pipe Graphics */}
                     <div className="flex flex-col items-center w-full">
-                      <div className="w-52 md:w-64 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl"></div>
-                      <div className="w-44 md:w-56 h-28 md:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                      <div className="w-48 sm:w-60 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
+                      <div className="w-40 sm:w-52 h-24 sm:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
                     </div>
                   </div>
                 );
