@@ -433,7 +433,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
   const warpSubBtnClass = "p-3 border-4 border-black shadow-lg transition-all active:scale-95 " + (isSubscribed ? "bg-gray-400" : "bg-yellow-400 hover:bg-yellow-300 animate-bounce");
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 relative overflow-hidden font-mono">
+    <div className="h-screen w-screen bg-black text-white p-4 relative overflow-hidden font-mono flex flex-col justify-between">
       <div className="fixed top-4 left-4 z-50">
         <PixelButton color="gray" onClick={onBack} className="flex items-center gap-2">
           <ArrowLeft size={16} /> EXIT ZONE
@@ -442,8 +442,8 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
       <div className="fixed top-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/0078b4033c4c374.png')] bg-repeat-x z-10 opacity-50"></div>
 
-      <div className="max-w-6xl mx-auto mt-20 relative z-20">
-        <div className="text-center mb-10 space-y-4">
+      <div className="max-w-6xl mx-auto mt-16 relative z-20 w-full flex-1 flex flex-col justify-center">
+        <div className="text-center mb-6 space-y-3">
           <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white pixel-font tracking-widest animate-pulse">
             WELCOME TO WARP ZONE!
           </h1>
@@ -482,11 +482,11 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         </div>
 
         {userVideos.length === 0 ? (
-          <div className="text-center mt-12 opacity-50 pb-32">
+          <div className="text-center my-auto opacity-50">
             <p className="pixel-font text-sm">NO PIPES FOUND IN THIS WORLD.</p>
           </div>
         ) : (
-          <div className="relative max-w-5xl mx-auto px-8 pb-32">
+          <div className="relative max-w-5xl mx-auto w-full px-8 my-auto">
             
             <button 
               onClick={scrollLeft}
@@ -504,7 +504,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
 
             <div 
               ref={scrollContainerRef}
-              className="flex items-end overflow-x-auto scrollbar-none py-6 px-12 snap-x snap-mandatory"
+              className="flex items-end overflow-x-auto py-4 px-12 snap-x snap-mandatory"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {userVideos.map((video, index) => {
@@ -540,8 +540,8 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                     </div>
 
                     <div className="flex flex-col items-center w-full">
-                      <div className="w-52 md:w-64 h-12 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl"></div>
-                      <div className="w-44 md:w-56 h-36 md:h-48 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
+                      <div className="w-52 md:w-64 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl"></div>
+                      <div className="w-44 md:w-56 h-28 md:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
                     </div>
                   </div>
                 );
@@ -551,7 +551,7 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         )}
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full h-16 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2a2e85908092a00.png')] bg-repeat-x z-10"></div>
+      <div className="w-full h-12 bg-[url('https://pixelartmaker-data-78746291193.nyc3.digitaloceanspaces.com/image/2a2e85908092a00.png')] bg-repeat-x z-10 shrink-0"></div>
 
       {isEditing && (
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4">
