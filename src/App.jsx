@@ -419,12 +419,23 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
     .filter(v => v.userId === targetUser.uid)
     .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const scrollLeft = scrollContainerRef.current.scrollLeft;
+    const itemWidth = 160;
+    const newIndex = Math.round(scrollLeft / itemWidth);
+    
+    if (newIndex >= 0 && newIndex < userVideos.length && newIndex !== activeIndex) {
+      setActiveIndex(newIndex);
+    }
+  };
+
   const scrollToIndex = (index) => {
     if (index < 0 || index >= userVideos.length) return;
     setActiveIndex(index);
     if (scrollContainerRef.current) {
-      const cardWidth = 200;
-      scrollContainerRef.current.scrollTo({ left: index * cardWidth, behavior: 'smooth' });
+      const itemWidth = 160;
+      scrollContainerRef.current.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
     }
   };
 
@@ -486,7 +497,6 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
         ) : (
           <div className="relative max-w-5xl mx-auto w-full px-8 my-auto">
             
-            {/* Scroll Navigation Arrows */}
             <button 
               onClick={() => scrollToIndex(activeIndex - 1)}
               disabled={activeIndex === 0}
@@ -503,10 +513,10 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
               <ChevronRight size={28} />
             </button>
 
-            {/* 3D Perspective Container */}
             <div 
               ref={scrollContainerRef}
-              className="flex items-end overflow-x-auto py-8 px-16 snap-x snap-mandatory perspective-[1000px]"
+              onScroll={handleScroll}
+              className="flex items-end overflow-x-auto py-8 px-24 snap-x snap-mandatory perspective-[1000px] touch-pan-x"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {userVideos.map((video, index) => {
@@ -518,7 +528,6 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                 const isCurrent = index === activeIndex;
                 const distance = Math.abs(index - activeIndex);
                 
-                // Active video gets highest zIndex, surrounding videos drop behind
                 const computedZIndex = isCurrent ? 40 : 30 - distance;
                 const scaleValue = isCurrent ? 1.05 : 0.82;
                 const translateZ = isCurrent ? 0 : -80;
@@ -560,7 +569,6 @@ const WarpZone = ({ targetUser, videos, currentUser, onBack, onWatch, subscribed
                       </div>
                     </div>
 
-                    {/* Unified Pipe Graphics */}
                     <div className="flex flex-col items-center w-full">
                       <div className="w-48 sm:w-60 h-10 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-4 border-black relative z-20 shadow-xl rounded-t"></div>
                       <div className="w-40 sm:w-52 h-24 sm:h-36 bg-gradient-to-r from-[#008800] via-[#00cc00] to-[#006600] border-x-4 border-black"></div>
